@@ -1,0 +1,16 @@
+user_id,username,password_hash,full_name,email,phone_number,organization_name,designation,role_id,status
+1,admin,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Rajesh K. Verma,admin.grants@gov.in,+91 98101 23456,Ministry of Finance / NIC,Director IT,1,ACTIVE
+2,officer_sharma,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Sunita Sharma,sunita.sharma@dst.gov.in,+91 98200 45678,Department of Science and Technology,Senior Program Officer,2,ACTIVE
+3,officer_nair,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Anand Nair,anand.nair@agri.gov.in,+91 98311 98765,Ministry of Agriculture & Farmers Welfare,Joint Director Grants,2,ACTIVE
+4,reviewer_kapoor,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Dr. Alok Kapoor,alok.kapoor@iitd.ac.in,+91 98765 11223,IIT Delhi - Dept of Electrical Engg,Professor & External Reviewer,3,ACTIVE
+5,reviewer_iyer,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Dr. Meenakshi Iyer,m.iyer@iisc.ac.in,+91 99887 33445,IISc Bangalore - Centre for Bio-Systems,Principal Investigator,3,ACTIVE
+6,reviewer_chatterjee,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Prof. Subhas Chatterjee,schatterjee@iitkgp.ac.in,+91 97482 66789,IIT Kharagpur - Rural Tech Action Group,Professor,3,ACTIVE
+7,applicant_patel,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Chirag Patel,chirag@krishiai-tech.com,+91 99099 87654,KrishiAI Technologies Pvt Ltd,Chief Technology Officer,4,ACTIVE
+8,applicant_reddy,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Kavitha Reddy,kavitha@telangana-solarlabs.org,+91 98490 12345,Surya Shakti Solar NGO,Managing Trustee,4,ACTIVE
+9,applicant_singh,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Harpreet Singh,harpreet@punjabhyrdo.in,+91 98150 44332,Green Harvest Hydroponics LLP,Founder & Director,4,ACTIVE
+10,applicant_banerjee,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Debashish Banerjee,debashish@bengalbio.in,+91 98300 77889,Kolkata Biopharma Innovations Ltd,Head of R&D,4,ACTIVE
+11,applicant_joshi,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Pooja Joshi,pooja@himalayancrafts.org,+91 94120 55667,Uttarakhand Weavers Cooperative Union,Secretary,4,ACTIVE
+12,applicant_menon,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Girish Menon,girish@cochinwaste.com,+91 98471 22334,Kerala Clean Oceans Enterprise,Chief Operating Officer,4,ACTIVE
+13,edge_user_empty_opts,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Naveen Kumar,naveen.empty@test.gov.in,,,4,ACTIVE
+14,edge_user_sim_name,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Rajesh K. Varma,rajesh.varma.alt@test.gov.in,+91 98101 23457,NIC Subsidiary Unit,Junior Analyst,4,ACTIVE
+15,edge_user_inactive,$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG,Siddharth Rao,siddharth.rao@suspended.org,+91 98888 00000,Blacklisted De-registered Foundation,Ex-Director,4,INACTIVE

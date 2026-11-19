@@ -1,0 +1,5 @@
+role_id,role_name,display_name,description
+1,ROLE_ADMIN,System Administrator,Full platform administrative access user onboarding and audit viewing
+2,ROLE_PROGRAM_OFFICER,Program Officer,Configures grant programs performs eligibility checks and initiates disbursements
+3,ROLE_REVIEWER,Evaluation Committee / Reviewer,Scores proposals against evaluation rubrics and submits review recommendations
+4,ROLE_APPLICANT,Grant Applicant,Submits grant proposals uploads supporting documents tracks progress and reports milestones

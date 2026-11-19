@@ -1,0 +1,11 @@
+program_id,program_code,title,category,funding_agency,total_budget,disbursed_budget,min_grant_amount,max_grant_amount,start_date,end_date,status,created_by
+1,GMS-2024-AGRI-01,PM Matsya Sampada Aquaculture Tech Grant,Agriculture & Fisheries,Ministry of Fisheries Animal Husbandry & Dairying,50000000.00,14500000.00,1000000.00,7500000.00,2024-04-01,2025-03-31,ACTIVE,2
+2,GMS-2024-CLEAN-02,National Clean Energy Solar Innovation Grant,Clean Energy,Ministry of New and Renewable Energy,120000000.00,42000000.00,2500000.00,20000000.00,2024-05-15,2025-11-30,ACTIVE,2
+3,GMS-2024-TECH-03,Digital India AI & Cybersecurity Challenge Grant,Technology & Innovation,Ministry of Electronics and Information Technology (MeitY),85000000.00,28000000.00,5000000.00,15000000.00,2024-06-01,2025-12-31,ACTIVE,2
+4,GMS-2024-HEALTH-04,Ayush Herbal Bio-Pharma Research Fund,Healthcare,Ministry of Ayush,30000000.00,8500000.00,1500000.00,6000000.00,2024-03-01,2025-08-31,ACTIVE,2
+5,GMS-2024-WOMEN-05,Rural Women Artisan Digital Livelihood Grant,Women Entrepreneurship,Ministry of Rural Development,25000000.00,6000000.00,500000.00,3000000.00,2024-02-15,2025-06-30,ACTIVE,3
+6,GMS-2024-SEMI-06,National Semiconductor Design Pilot Scheme,Technology & Innovation,India Semiconductor Mission (ISM),200000000.00,55000000.00,10000000.00,30000000.00,2024-07-01,2026-03-31,ACTIVE,2
+7,GMS-2024-HYDRO-07,Green Hydrogen Production Sub-System Grant,Clean Energy,Ministry of New and Renewable Energy,150000000.00,0.00,15000000.00,50000000.00,2024-09-01,2026-06-30,UNDER_EVALUATION,2
+8,GMS-2024-WASTE-08,Circular Economy Urban Waste Upcycling Grant,Environment & Sustainability,Ministry of Housing and Urban Affairs,40000000.00,12000000.00,2000000.00,8000000.00,2024-01-10,2025-04-30,ACTIVE,3
+9,GMS-2024-MED-09,Make in India Point-of-Care Medical Diagnostics,Healthcare,Department of Biotechnology (DBT),60000000.00,18000000.00,3000000.00,10000000.00,2024-04-15,2025-10-31,ACTIVE,2
+10,GMS-2024-EDTECH-10,Bharat Bhasha Open Educational Tech Fund,Education & Skill,Ministry of Education,20000000.00,0.00,1000000.00,4000000.00,2024-10-01,2025-09-30,ACTIVE,3

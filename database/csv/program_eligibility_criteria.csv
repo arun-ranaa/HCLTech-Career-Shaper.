@@ -1,0 +1,17 @@
+criterion_id,program_id,criterion_code,criterion_name,criterion_type,expected_value,is_mandatory,weightage
+1,1,MIN_OPERATING_YEARS,Minimum Years in Operation,NUMERIC_MIN,2,Y,25
+2,1,MAX_TURNOVER_CRORES,Maximum Annual Turnover (INR Crores),NUMERIC_MAX,50,N,15
+3,1,ENTITY_TYPE_ALLOWED,Permissible Legal Entity Type,IN_LIST,"Startup,MSME,Cooperative Society,LLP",Y,30
+4,1,GST_REGISTRATION,Valid GST Registration Required,BOOLEAN,TRUE,Y,30
+5,2,MIN_OPERATING_YEARS,Minimum Years in Operation,NUMERIC_MIN,3,Y,20
+6,2,MIN_TURNOVER_LAKHS,Minimum Annual Turnover (INR Lakhs),NUMERIC_MIN,50,Y,30
+7,2,DPIIT_RECOGNITION,CleanTech / Energy Certification,BOOLEAN,TRUE,N,25
+8,2,PATENT_OR_IPR,Filed Patent or Provisional IPR,BOOLEAN,TRUE,N,25
+9,3,DPIIT_RECOGNIZED,DPIIT Recognized Startup,BOOLEAN,TRUE,Y,35
+10,3,MAX_AGE_YEARS,Maximum Company Age (Years),NUMERIC_MAX,10,Y,25
+11,3,IND_RESIDENT_DIRECTORS,At least 51% Resident Indian Ownership,BOOLEAN,TRUE,Y,40
+12,4,GMP_CERTIFIED,WHO-GMP or Ayush GMP Certification,BOOLEAN,TRUE,Y,40
+13,4,MIN_OPERATING_YEARS,Minimum Years in Operation,NUMERIC_MIN,3,Y,30
+14,4,INHOUSE_LAB,Accredited Analytical Testing Facility,BOOLEAN,TRUE,N,30
+15,5,WOMEN_MEMBERSHIP_PCT,Minimum Percentage of Women Members/Partners,NUMERIC_MIN,70,Y,50
+16,5,RURAL_LOCALITY,Operational Address in Rural or Semi-Urban Area,BOOLEAN,TRUE,Y,50
