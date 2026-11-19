@@ -1,42 +1,92 @@
 /**
- * Grants Management System (J18) - Interactive Frontend Engine
- * Connects seamlessly to Spring Boot REST backend on http://localhost:8080/api/v1
- * Features full offline demo-fallback with pre-populated datasets.
+ * Grants Management System (J18) - Multi-Portal Role-Based Architecture
+ * Implements strict Authentication & Role-Based Access Control (RBAC):
+ *  1. ROLE_APPLICANT       -> Citizen / Enterprise / NGO Portal
+ *  2. ROLE_PROGRAM_OFFICER -> Ministry Officer Scheme & Sanction Desk
+ *  3. ROLE_REVIEWER        -> Evaluation Committee Rubric Scoring Portal
+ *  4. ROLE_ADMIN           -> System Administrator & Audit Console
  */
 
 const API_BASE = 'http://localhost:8080/api/v1';
 
-// Current active application state
-const state = {
-  currentTab: 'dashboard',
-  currentUser: {
+// Seed User Profiles for Authentication & Authorization
+const USERS_DB = {
+  'applicant_patel': {
+    userId: 7,
+    username: 'applicant_patel',
+    fullName: 'Chirag Patel',
+    role: 'ROLE_APPLICANT',
+    organizationName: 'KrishiAI Technologies Pvt Ltd (DPIIT Startup)',
+    email: 'chirag@krishiai-tech.com',
+    location: 'Surat, Gujarat'
+  },
+  'officer_sharma': {
     userId: 2,
     username: 'officer_sharma',
     fullName: 'Sunita Sharma',
     role: 'ROLE_PROGRAM_OFFICER',
-    organizationName: 'Department of Science and Technology'
+    organizationName: 'Department of Science and Technology (DST)',
+    email: 'sunita.sharma@dst.gov.in',
+    location: 'New Delhi'
   },
+  'reviewer_kapoor': {
+    userId: 4,
+    username: 'reviewer_kapoor',
+    fullName: 'Dr. Alok Kapoor',
+    role: 'ROLE_REVIEWER',
+    organizationName: 'IIT Delhi - Dept of Electrical Engg',
+    email: 'alok.kapoor@iitd.ac.in',
+    location: 'New Delhi'
+  },
+  'admin': {
+    userId: 1,
+    username: 'admin',
+    fullName: 'Rajesh K. Verma',
+    role: 'ROLE_ADMIN',
+    organizationName: 'Ministry of Finance / National Informatics Centre',
+    email: 'admin.grants@gov.in',
+    location: 'New Delhi'
+  }
+};
+
+// Application State
+const state = {
+  currentUser: null, // Null indicates unauthenticated (Login Screen)
+  currentTab: 'default',
   stats: null,
   programs: [],
   applications: [],
   disbursements: [],
   utilizationReports: [],
-  selectedApp: null,
-  modalOpen: false,
-  modalType: null
+  auditLogs: [],
+  selectedProgramId: null
 };
 
-// Initializer
-document.addEventListener('DOMContentLoaded', () => {
-  initApp();
+// Initialize Application
+document.addEventListener('DOMContentLoaded', async () => {
+  const saved = localStorage.getItem('gms_session_user');
+  if (saved) {
+    try {
+      state.currentUser = JSON.parse(saved);
+      setDefaultTabForRole(state.currentUser.role);
+    } catch (e) {
+      state.currentUser = null;
+    }
+  }
+
+  await loadData();
+  renderApp();
 });
 
-async function initApp() {
-  renderShell();
-  await loadData();
-  renderContent();
+function setDefaultTabForRole(role) {
+  if (role === 'ROLE_APPLICANT') state.currentTab = 'applicant_schemes';
+  else if (role === 'ROLE_PROGRAM_OFFICER') state.currentTab = 'officer_overview';
+  else if (role === 'ROLE_REVIEWER') state.currentTab = 'reviewer_queue';
+  else if (role === 'ROLE_ADMIN') state.currentTab = 'admin_overview';
+  else state.currentTab = 'login';
 }
 
+// Data Loader (Backend with Fallback Mock)
 async function loadData() {
   try {
     const [statsRes, progsRes, appsRes, disbRes, utilRes] = await Promise.all([
@@ -52,11 +102,8 @@ async function loadData() {
     if (appsRes && appsRes.ok) state.applications = await appsRes.json();
     if (disbRes && disbRes.ok) state.disbursements = await disbRes.json();
     if (utilRes && utilRes.ok) state.utilizationReports = await utilRes.json();
-  } catch (e) {
-    console.warn('Backend connecting or offline; using local mock data for zero-config demo.');
-  }
+  } catch (e) {}
 
-  // Fallback defaults if backend is not yet started
   if (!state.stats) {
     state.stats = {
       totalPrograms: 4,
@@ -89,9 +136,9 @@ async function loadData() {
         status: 'ACTIVE',
         eligibilitySummary: 'MSMEs or Startups registered in India with min 2 years operational record in fisheries.',
         criteria: [
-          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '2', isMandatory: 'Y', weightage: 25 },
-          { criterionCode: 'ENTITY_TYPE_ALLOWED', criterionName: 'Entity Type', criterionType: 'IN_LIST', expectedValue: 'Startup,MSME,LLP', isMandatory: 'Y', weightage: 35 },
-          { criterionCode: 'GST_REGISTRATION', criterionName: 'GST Registration', criterionType: 'BOOLEAN', expectedValue: 'TRUE', isMandatory: 'Y', weightage: 40 }
+          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '2', isMandatory: 'Y', weightage: 30 },
+          { criterionCode: 'ENTITY_TYPE_ALLOWED', criterionName: 'Entity Type Allowed', criterionType: 'IN_LIST', expectedValue: 'Startup,MSME,LLP', isMandatory: 'Y', weightage: 35 },
+          { criterionCode: 'GST_REGISTRATION', criterionName: 'Valid GSTIN', criterionType: 'BOOLEAN', expectedValue: 'TRUE', isMandatory: 'Y', weightage: 35 }
         ]
       },
       {
@@ -109,8 +156,8 @@ async function loadData() {
         status: 'ACTIVE',
         eligibilitySummary: 'Indian Private Limited companies or Academic Labs. Min turnover INR 50 Lakhs.',
         criteria: [
-          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '3', isMandatory: 'Y', weightage: 20 },
-          { criterionCode: 'MIN_TURNOVER_LAKHS', criterionName: 'Min Turnover Lakhs', criterionType: 'NUMERIC_MIN', expectedValue: '50', isMandatory: 'Y', weightage: 30 }
+          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '3', isMandatory: 'Y', weightage: 30 },
+          { criterionCode: 'MIN_TURNOVER_LAKHS', criterionName: 'Min Annual Turnover (Lakhs)', criterionType: 'NUMERIC_MIN', expectedValue: '50', isMandatory: 'Y', weightage: 40 }
         ]
       },
       {
@@ -126,9 +173,28 @@ async function loadData() {
         startDate: '2024-06-01',
         endDate: '2025-12-31',
         status: 'ACTIVE',
-        eligibilitySummary: 'DPIIT recognized Startups with Indian resident majority shareholding.',
+        eligibilitySummary: 'DPIIT recognized Startups with Indian resident majority shareholding and functional prototype.',
         criteria: [
-          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '1', isMandatory: 'Y', weightage: 30 }
+          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '1', isMandatory: 'Y', weightage: 40 },
+          { criterionCode: 'ENTITY_TYPE_ALLOWED', criterionName: 'Permissible Entities', criterionType: 'IN_LIST', expectedValue: 'Startup,MSME', isMandatory: 'Y', weightage: 60 }
+        ]
+      },
+      {
+        programId: 4,
+        programCode: 'GMS-2024-WOMEN-05',
+        title: 'Rural Women Artisan Digital Livelihood Grant',
+        category: 'Women Entrepreneurship',
+        fundingAgency: 'Ministry of Rural Development',
+        totalBudget: 25000000,
+        disbursedBudget: 6000000,
+        minGrantAmount: 500000,
+        maxGrantAmount: 3000000,
+        startDate: '2024-02-15',
+        endDate: '2025-06-30',
+        status: 'ACTIVE',
+        eligibilitySummary: 'Cooperative societies or registered NGOs with at least 70% women members.',
+        criteria: [
+          { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '2', isMandatory: 'Y', weightage: 50 }
         ]
       }
     ];
@@ -140,7 +206,7 @@ async function loadData() {
         applicationId: 1,
         applicationNumber: 'APP-2024-AGRI-00101',
         program: state.programs[0],
-        applicant: { fullName: 'Chirag Patel', organizationName: 'KrishiAI Technologies Pvt Ltd' },
+        applicant: USERS_DB['applicant_patel'],
         projectTitle: 'Smart IoT AquaAerator for Freshwater Prawns',
         projectSummary: 'Deployment of solar-assisted automatic oxygenators with pH and turbidity monitoring in coastal aquaculture ponds.',
         requestedAmount: 4500000,
@@ -156,13 +222,15 @@ async function loadData() {
         eligibilityStatus: 'AUTO_ELIGIBLE',
         eligibilityRemarks: 'All mandatory criteria satisfied: 3 yrs active, valid GST.',
         status: 'APPROVED',
-        submissionDate: '2024-04-12 10:30'
+        submissionDate: '2024-04-12 10:30',
+        assignedReviewer: USERS_DB['reviewer_kapoor'],
+        reviewScores: { feasibility: 23, innovation: 21, budget: 22, social: 24, total: 90, recommendation: 'RECOMMEND_APPROVE' }
       },
       {
         applicationId: 2,
         applicationNumber: 'APP-2024-CLEAN-00201',
         program: state.programs[1],
-        applicant: { fullName: 'Kavitha Reddy', organizationName: 'Surya Shakti Solar NGO' },
+        applicant: { userId: 8, fullName: 'Kavitha Reddy', organizationName: 'Surya Shakti Solar NGO', role: 'ROLE_APPLICANT' },
         projectTitle: 'Community Solar Microgrid with Flow Batteries',
         projectSummary: 'Deploying 50kW agro-photovoltaic micro-grids powering irrigation pumps and rural micro-cold storages.',
         requestedAmount: 15000000,
@@ -178,13 +246,15 @@ async function loadData() {
         eligibilityStatus: 'AUTO_ELIGIBLE',
         eligibilityRemarks: 'Turnover and experience criteria verified.',
         status: 'APPROVED',
-        submissionDate: '2024-05-25 11:00'
+        submissionDate: '2024-05-25 11:00',
+        assignedReviewer: USERS_DB['reviewer_kapoor'],
+        reviewScores: { feasibility: 24, innovation: 22, budget: 23, social: 25, total: 94, recommendation: 'RECOMMEND_APPROVE' }
       },
       {
         applicationId: 3,
         applicationNumber: 'APP-2024-TECH-00301',
         program: state.programs[2],
-        applicant: { fullName: 'Chirag Patel', organizationName: 'KrishiAI Technologies Pvt Ltd' },
+        applicant: USERS_DB['applicant_patel'],
         projectTitle: 'BhashaAI: Multilingual Speech-to-Speech Engine for Rural Health',
         projectSummary: 'Speech recognition and translation for 10 Indic languages enabling ASHA health workers to capture patient notes.',
         requestedAmount: 12000000,
@@ -200,15 +270,17 @@ async function loadData() {
         eligibilityStatus: 'AUTO_ELIGIBLE',
         eligibilityRemarks: 'Full eligibility confirmed.',
         status: 'DISBURSED',
-        submissionDate: '2024-06-15 09:20'
+        submissionDate: '2024-06-15 09:20',
+        assignedReviewer: USERS_DB['reviewer_kapoor'],
+        reviewScores: { feasibility: 25, innovation: 25, budget: 22, social: 24, total: 96, recommendation: 'RECOMMEND_APPROVE' }
       },
       {
         applicationId: 4,
         applicationNumber: 'APP-2024-AGRI-00102',
         program: state.programs[0],
-        applicant: { fullName: 'Harpreet Singh', organizationName: 'Green Harvest Hydroponics LLP' },
+        applicant: { userId: 9, fullName: 'Harpreet Singh', organizationName: 'Green Harvest Hydroponics LLP', role: 'ROLE_APPLICANT' },
         projectTitle: 'Cold-Water Trout Recirculatory Aquaculture System (RAS)',
-        projectSummary: 'Indoor tank systems for high-altitude trout cultivation in Mandi district.',
+        projectSummary: 'Indoor recirculatory tank systems for high-altitude trout cultivation in Mandi district.',
         requestedAmount: 6000000,
         approvedAmount: null,
         projectDurationMonths: 24,
@@ -222,7 +294,9 @@ async function loadData() {
         eligibilityStatus: 'AUTO_ELIGIBLE',
         eligibilityRemarks: 'Meets operational age, registered MSME.',
         status: 'UNDER_REVIEW',
-        submissionDate: '2024-04-20 14:15'
+        submissionDate: '2024-04-20 14:15',
+        assignedReviewer: USERS_DB['reviewer_kapoor'],
+        reviewScores: null
       }
     ];
   }
@@ -304,6 +378,16 @@ async function loadData() {
       }
     ];
   }
+
+  if (!state.auditLogs || state.auditLogs.length === 0) {
+    state.auditLogs = [
+      { timestamp: '2024-04-12 10:30', user: 'Chirag Patel (Applicant)', action: 'SUBMIT', entity: 'APP-2024-AGRI-00101', ip: '49.36.12.98', details: 'Submitted proposal with 4 uploaded verified documents.' },
+      { timestamp: '2024-04-15 11:00', user: 'Sunita Sharma (Officer)', action: 'ASSIGN_REVIEWER', entity: 'APP-2024-AGRI-00101', ip: '10.20.1.45', details: 'Assigned proposal to Dr. Alok Kapoor (IIT Delhi).' },
+      { timestamp: '2024-04-28 11:30', user: 'Dr. Alok Kapoor (Reviewer)', action: 'SUBMIT_REVIEW', entity: 'APP-2024-AGRI-00101', ip: '14.139.45.10', details: 'Score: 90/100 | Recommendation: RECOMMEND_APPROVE.' },
+      { timestamp: '2024-05-02 15:00', user: 'Sunita Sharma (Officer)', action: 'APPROVE', entity: 'APP-2024-AGRI-00101', ip: '10.20.1.45', details: 'Sanction approved for INR 42,00,000 in two tranches.' },
+      { timestamp: '2024-05-05 12:45', user: 'Sunita Sharma (Officer)', action: 'DISBURSE', entity: 'PFMS-TR-2024-00101', ip: '10.20.1.45', details: 'Released Tranche 1 payment of INR 25,00,000 via PFMS NEFT.' }
+    ];
+  }
 }
 
 function formatINR(val) {
@@ -318,6 +402,7 @@ function getStatusBadge(status) {
     'DISBURSED': 'badge-green',
     'AUTO_ELIGIBLE': 'badge-green',
     'VERIFIED_SATISFACTORY': 'badge-green',
+    'RECOMMEND_APPROVE': 'badge-green',
     'SUBMITTED': 'badge-blue',
     'UNDER_REVIEW': 'badge-yellow',
     'PENDING_VERIFICATION': 'badge-yellow',
@@ -325,588 +410,564 @@ function getStatusBadge(status) {
     'DRAFT': 'badge-gray',
     'CLOSED': 'badge-gray',
     'AUTO_INELIGIBLE': 'badge-red',
-    'REJECTED': 'badge-red'
+    'REJECTED': 'badge-red',
+    'RECOMMEND_REJECT': 'badge-red'
   };
   return `<span class="badge ${map[status] || 'badge-gray'}">${status}</span>`;
 }
 
-// Render Shell (Header, Navigation, App Host)
-function renderShell() {
-  const app = document.getElementById('app');
-  app.innerHTML = `
-    <!-- Government Portal Top Header -->
+// =============================================================================
+// MAIN APP RENDERER
+// =============================================================================
+function renderApp() {
+  const root = document.getElementById('app');
+
+  // If not logged in -> Show Authentication Gate
+  if (!state.currentUser) {
+    renderLoginScreen(root);
+    return;
+  }
+
+  // If logged in -> Render Role-Specific Portal
+  root.innerHTML = `
+    <!-- Top Bar with User Info & Logout -->
     <header class="gov-topbar">
       <div class="gov-logo-section">
         <div class="gov-emblem">GOI</div>
         <div class="gov-title">
           <h1>Grants Management System (GMS - J18)</h1>
-          <p>Government of India | Public Sector Grant Programs & Disbursements</p>
+          <p>${getPortalTitleByRole(state.currentUser.role)}</p>
         </div>
       </div>
       <div class="user-role-badge">
-        <span>Logged in as: <strong>${state.currentUser.fullName}</strong></span>
-        <span class="role-tag">${state.currentUser.role.replace('ROLE_', '')}</span>
-        <select id="roleSwitcher" class="form-select" style="padding: 2px 8px; font-size: 12px; height: 28px;">
-          <option value="officer_sharma" ${state.currentUser.username === 'officer_sharma' ? 'selected' : ''}>Program Officer (Sunita Sharma)</option>
-          <option value="applicant_patel" ${state.currentUser.username === 'applicant_patel' ? 'selected' : ''}>Grant Applicant (Chirag Patel)</option>
-          <option value="reviewer_kapoor" ${state.currentUser.username === 'reviewer_kapoor' ? 'selected' : ''}>Reviewer (Dr. Alok Kapoor)</option>
-          <option value="admin" ${state.currentUser.username === 'admin' ? 'selected' : ''}>System Administrator (Rajesh Verma)</option>
-        </select>
+        <div style="text-align: right; line-height: 1.2;">
+          <div style="font-weight: 600;">${state.currentUser.fullName}</div>
+          <small style="color: #bfdbfe; font-size: 11px;">${state.currentUser.organizationName}</small>
+        </div>
+        <span class="role-tag">${getRoleBadgeName(state.currentUser.role)}</span>
+        <button class="btn btn-danger btn-sm" onclick="handleLogout()" style="padding: 4px 10px; font-size: 12px;">Sign Out</button>
       </div>
     </header>
 
-    <!-- Main Navigation Bar -->
+    <!-- Role-Specific Navigation Bar -->
     <nav class="nav-bar">
       <div class="nav-links">
-        <button class="nav-btn ${state.currentTab === 'dashboard' ? 'active' : ''}" onclick="switchTab('dashboard')">Overview & Analytics</button>
-        <button class="nav-btn ${state.currentTab === 'programs' ? 'active' : ''}" onclick="switchTab('programs')">Grant Programs (M1)</button>
-        <button class="nav-btn ${state.currentTab === 'applications' ? 'active' : ''}" onclick="switchTab('applications')">Applications & Eligibility (M2)</button>
-        <button class="nav-btn ${state.currentTab === 'reviews' ? 'active' : ''}" onclick="switchTab('reviews')">Review & Sanction Desk (M3)</button>
-        <button class="nav-btn ${state.currentTab === 'disbursements' ? 'active' : ''}" onclick="switchTab('disbursements')">Disbursements & Reports (M4)</button>
+        ${getNavLinksForRole(state.currentUser.role)}
       </div>
       <div>
-        <span class="badge badge-green" style="font-size: 11px;">● SYSTEM DEMO READY</span>
+        <span class="badge badge-green" style="font-size: 11px;">AUTH: ${state.currentUser.username} (${state.currentUser.role})</span>
       </div>
     </nav>
 
-    <!-- Main Workspace Container -->
-    <main id="mainContent" class="container"></main>
+    <!-- Role Workspace -->
+    <main id="portalWorkspace" class="container"></main>
 
-    <!-- Modal Container -->
+    <!-- Global Modal Host -->
     <div id="modalHost"></div>
   `;
 
-  document.getElementById('roleSwitcher').addEventListener('change', (e) => {
-    const val = e.target.value;
-    if (val === 'officer_sharma') {
-      state.currentUser = { userId: 2, username: 'officer_sharma', fullName: 'Sunita Sharma', role: 'ROLE_PROGRAM_OFFICER', organizationName: 'DST' };
-    } else if (val === 'applicant_patel') {
-      state.currentUser = { userId: 7, username: 'applicant_patel', fullName: 'Chirag Patel', role: 'ROLE_APPLICANT', organizationName: 'KrishiAI Technologies' };
-    } else if (val === 'reviewer_kapoor') {
-      state.currentUser = { userId: 4, username: 'reviewer_kapoor', fullName: 'Dr. Alok Kapoor', role: 'ROLE_REVIEWER', organizationName: 'IIT Delhi' };
-    } else {
-      state.currentUser = { userId: 1, username: 'admin', fullName: 'Rajesh K. Verma', role: 'ROLE_ADMIN', organizationName: 'NIC' };
-    }
-    renderShell();
-    renderContent();
-  });
+  renderPortalWorkspace();
 }
 
-function switchTab(tab) {
-  state.currentTab = tab;
-  renderShell();
-  renderContent();
+function getPortalTitleByRole(role) {
+  if (role === 'ROLE_APPLICANT') return 'Citizen & Enterprise Grant Application Portal';
+  if (role === 'ROLE_PROGRAM_OFFICER') return 'Ministry Program Officer Scheme & Sanction Desk';
+  if (role === 'ROLE_REVIEWER') return 'Evaluation Committee & Technical Peer Review Desk';
+  return 'National Platform Administration & Security Desk';
 }
 
-function renderContent() {
-  const host = document.getElementById('mainContent');
-  if (state.currentTab === 'dashboard') {
-    renderDashboard(host);
-  } else if (state.currentTab === 'programs') {
-    renderPrograms(host);
-  } else if (state.currentTab === 'applications') {
-    renderApplications(host);
-  } else if (state.currentTab === 'reviews') {
-    renderReviews(host);
-  } else if (state.currentTab === 'disbursements') {
-    renderDisbursements(host);
+function getRoleBadgeName(role) {
+  return role.replace('ROLE_', '').replace('_', ' ');
+}
+
+function getNavLinksForRole(role) {
+  if (role === 'ROLE_APPLICANT') {
+    return `
+      <button class="nav-btn ${state.currentTab === 'applicant_schemes' ? 'active' : ''}" onclick="switchPortalTab('applicant_schemes')">Browse Grant Schemes</button>
+      <button class="nav-btn ${state.currentTab === 'applicant_my_apps' ? 'active' : ''}" onclick="switchPortalTab('applicant_my_apps')">My Submitted Applications</button>
+      <button class="nav-btn ${state.currentTab === 'applicant_apply' ? 'active' : ''}" onclick="switchPortalTab('applicant_apply')">+ Apply for Grant</button>
+      <button class="nav-btn ${state.currentTab === 'applicant_uc' ? 'active' : ''}" onclick="switchPortalTab('applicant_uc')">Milestone Progress & UCs</button>
+    `;
+  } else if (role === 'ROLE_PROGRAM_OFFICER') {
+    return `
+      <button class="nav-btn ${state.currentTab === 'officer_overview' ? 'active' : ''}" onclick="switchPortalTab('officer_overview')">Officer Dashboard</button>
+      <button class="nav-btn ${state.currentTab === 'officer_schemes' ? 'active' : ''}" onclick="switchPortalTab('officer_schemes')">Scheme Management (M1)</button>
+      <button class="nav-btn ${state.currentTab === 'officer_scrutiny' ? 'active' : ''}" onclick="switchPortalTab('officer_scrutiny')">Scrutiny & Sanctions (M2/M3)</button>
+      <button class="nav-btn ${state.currentTab === 'officer_disbursements' ? 'active' : ''}" onclick="switchPortalTab('officer_disbursements')">PFMS Disbursements & UCs (M4)</button>
+    `;
+  } else if (role === 'ROLE_REVIEWER') {
+    return `
+      <button class="nav-btn ${state.currentTab === 'reviewer_queue' ? 'active' : ''}" onclick="switchPortalTab('reviewer_queue')">My Assigned Review Queue</button>
+    `;
+  } else {
+    // Admin
+    return `
+      <button class="nav-btn ${state.currentTab === 'admin_overview' ? 'active' : ''}" onclick="switchPortalTab('admin_overview')">Executive Dashboard</button>
+      <button class="nav-btn ${state.currentTab === 'admin_users' ? 'active' : ''}" onclick="switchPortalTab('admin_users')">User & Role Management</button>
+      <button class="nav-btn ${state.currentTab === 'admin_audit' ? 'active' : ''}" onclick="switchPortalTab('admin_audit')">Security Audit Logs</button>
+    `;
   }
 }
 
-// -----------------------------------------------------------------------------
-// TAB 1: OVERVIEW & ANALYTICS DASHBOARD
-// -----------------------------------------------------------------------------
-function renderDashboard(host) {
-  const s = state.stats;
-  host.innerHTML = `
-    <!-- Top Metric KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">Total Allocated Budget</div>
-        <div class="kpi-value">${formatINR(s.totalAllocatedBudget)}</div>
-        <div class="kpi-sub">${s.totalPrograms} Total Grant Schemes</div>
-      </div>
-      <div class="kpi-card green">
-        <div class="kpi-title">Disbursed Funds to Date</div>
-        <div class="kpi-value">${formatINR(s.totalDisbursedBudget)}</div>
-        <div class="kpi-sub">${s.budgetUtilizationRate.toFixed(1)}% of total corpus released</div>
-      </div>
-      <div class="kpi-card amber">
-        <div class="kpi-title">Proposals in Pipeline</div>
-        <div class="kpi-value">${s.totalApplications}</div>
-        <div class="kpi-sub">${s.applicationsUnderReview} Under Peer Review</div>
-      </div>
-      <div class="kpi-card purple">
-        <div class="kpi-title">Sanctioned & Disbursed</div>
-        <div class="kpi-value">${s.applicationsApproved + s.applicationsDisbursed}</div>
-        <div class="kpi-sub">${s.applicationsDisbursed} Disbursed via PFMS/RTGS</div>
-      </div>
-    </div>
+function switchPortalTab(tab) {
+  state.currentTab = tab;
+  renderApp();
+}
 
-    <!-- Budget Allocation Meter -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Fiscal Year Fund Utilization Benchmark</div>
-          <div class="card-desc">Real-time expenditure tracking against cabinet sanctioned grant ceilings</div>
+// =============================================================================
+// AUTHENTICATION GATE (LOGIN SCREEN)
+// =============================================================================
+function renderLoginScreen(root) {
+  root.innerHTML = `
+    <div style="min-height: 100vh; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+      <div style="width: 100%; max-width: 520px; background: #ffffff; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
+        <!-- Gov Header Banner -->
+        <div style="background: linear-gradient(135deg, #0b1f3a 0%, #1e3a8a 100%); color: #ffffff; padding: 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+          <div style="display: inline-block; background: #f59e0b; color: #0b1f3a; font-weight: 800; font-size: 14px; padding: 4px 10px; border-radius: 4px; margin-bottom: 8px;">GOVERNMENT OF INDIA</div>
+          <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Grants Management System (J18)</h2>
+          <p style="font-size: 13px; color: #bfdbfe;">Public Sector Scheme Formulation, Grant Sanction & PFMS Tracking</p>
         </div>
-        <span class="badge badge-green" style="font-size: 13px;">${s.budgetUtilizationRate.toFixed(2)}% Disbursed</span>
-      </div>
-      <div class="progress-bar-bg" style="height: 14px;">
-        <div class="progress-bar-fill" style="width: ${Math.min(s.budgetUtilizationRate, 100)}%;"></div>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #64748b;">
-        <span>Sanctioned: ${formatINR(s.totalAllocatedBudget)}</span>
-        <span>Remaining: ${formatINR(s.totalAllocatedBudget - s.totalDisbursedBudget)}</span>
-      </div>
-    </div>
 
-    <!-- Recent Grant Applications Feed -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Recent Grant Submissions & Sanctions</div>
-          <div class="card-desc">Latest proposals submitted across states and evaluated against scheme rubrics</div>
+        <!-- Login Form -->
+        <div style="padding: 28px;">
+          <form onsubmit="handleManualLogin(event)">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label>Username / Official ID</label>
+              <input type="text" id="loginUsername" class="form-input" required placeholder="e.g. officer_sharma or applicant_patel" value="officer_sharma">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label>Password</label>
+              <input type="password" id="loginPassword" class="form-input" required value="Password@123">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px; font-size: 14px;">
+              Sign In to Official Portal
+            </button>
+          </form>
+
+          <div style="margin: 24px 0 16px; display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px;">
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            <span style="padding: 0 10px; font-weight: 600; text-transform: uppercase;">Or 1-Click Quick Login by Role</span>
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+          </div>
+
+          <!-- Quick Persona Selector Cards -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div onclick="quickLogin('applicant_patel')" style="cursor: pointer; padding: 12px; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
+              <div style="font-weight: 700; color: #1e40af; font-size: 13px;">📝 Grant Applicant</div>
+              <div style="font-size: 11px; color: #3b82f6;">Chirag Patel (Startup)</div>
+              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Applies & tracks proposals</div>
+            </div>
+
+            <div onclick="quickLogin('officer_sharma')" style="cursor: pointer; padding: 12px; border: 1px solid #fed7aa; background: #fff7ed; border-radius: 8px; text-align: left; transition: all 0.15s;">
+              <div style="font-weight: 700; color: #c2410c; font-size: 13px;">🏛️ Program Officer</div>
+              <div style="font-size: 11px; color: #ea580c;">Sunita Sharma (DST)</div>
+              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Sets schemes & sanctions</div>
+            </div>
+
+            <div onclick="quickLogin('reviewer_kapoor')" style="cursor: pointer; padding: 12px; border: 1px solid #ddd6fe; background: #faf5ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
+              <div style="font-weight: 700; color: #6b21a8; font-size: 13px;">🔬 Peer Reviewer</div>
+              <div style="font-size: 11px; color: #9333ea;">Dr. Alok Kapoor (IIT Delhi)</div>
+              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Scores proposal rubrics</div>
+            </div>
+
+            <div onclick="quickLogin('admin')" style="cursor: pointer; padding: 12px; border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 8px; text-align: left; transition: all 0.15s;">
+              <div style="font-weight: 700; color: #15803d; font-size: 13px;">⚙️ System Admin</div>
+              <div style="font-size: 11px; color: #16a34a;">Rajesh Verma (NIC)</div>
+              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Audits & macro stats</div>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="switchTab('applications')">View All Applications</button>
       </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>App Number</th>
-              <th>Applicant & Organization</th>
-              <th>Project Title</th>
-              <th>Requested (INR)</th>
-              <th>Eligibility</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.applications.slice(0, 5).map(a => `
-              <tr>
-                <td><strong>${a.applicationNumber}</strong></td>
-                <td>
-                  <div>${a.applicant ? a.applicant.fullName : 'Applicant'}</div>
-                  <small style="color: #64748b;">${a.organizationType} • ${a.stateOrRegion}</small>
-                </td>
-                <td>${a.projectTitle}</td>
-                <td><strong>${formatINR(a.requestedAmount)}</strong></td>
-                <td>${getStatusBadge(a.eligibilityStatus)}</td>
-                <td>${getStatusBadge(a.status)}</td>
-                <td>
-                  <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail(${a.applicationId})">Inspect</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div style="margin-top: 16px; font-size: 12px; color: #94a3b8; text-align: center;">
+        ABES Engineering College | MCA 2nd Year | Project J18 | Spring Boot 3 & Angular 14
       </div>
     </div>
   `;
 }
 
-// -----------------------------------------------------------------------------
-// TAB 2: MODULE 1 - GRANT PROGRAM SETUP & CONFIGURATION
-// -----------------------------------------------------------------------------
-function renderPrograms(host) {
-  host.innerHTML = `
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Grant Programs Setup & Scheme Catalog (Module 1)</div>
-          <div class="card-desc">Configure grant schemes, budget allocations, date horizons, and automated eligibility criteria</div>
-        </div>
-        ${state.currentUser.role === 'ROLE_PROGRAM_OFFICER' || state.currentUser.role === 'ROLE_ADMIN' ? `
-          <button class="btn btn-primary" onclick="openNewProgramModal()">+ Configure New Grant Program</button>
-        ` : ''}
-      </div>
-
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Scheme Code</th>
-              <th>Grant Scheme Title & Agency</th>
-              <th>Category</th>
-              <th>Total Budget</th>
-              <th>Disbursed</th>
-              <th>Grant Range</th>
-              <th>Tenure</th>
-              <th>Status</th>
-              <th>Criteria Rules</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.programs.map(p => `
-              <tr>
-                <td><strong>${p.programCode}</strong></td>
-                <td>
-                  <div style="font-weight: 600; color: #0f172a;">${p.title}</div>
-                  <small style="color: #64748b;">${p.fundingAgency}</small>
-                </td>
-                <td><span class="badge badge-blue">${p.category}</span></td>
-                <td><strong>${formatINR(p.totalBudget)}</strong></td>
-                <td>${formatINR(p.disbursedBudget)}</td>
-                <td>${formatINR(p.minGrantAmount)} - ${formatINR(p.maxGrantAmount)}</td>
-                <td><small>${p.startDate} to ${p.endDate}</small></td>
-                <td>${getStatusBadge(p.status)}</td>
-                <td>
-                  <span class="badge badge-purple">${(p.criteria && p.criteria.length) || 0} Rules Configured</span>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-function openNewProgramModal() {
-  const modal = document.getElementById('modalHost');
-  modal.innerHTML = `
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Create & Configure Grant Program (Module 1)</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
-        </div>
-        <form id="newProgForm" onsubmit="handleCreateProgram(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Program Code *</label>
-              <input type="text" id="pCode" class="form-input" required value="GMS-2025-INNOV-${Math.floor(Math.random()*900)+100}">
-            </div>
-            <div class="form-group">
-              <label>Scheme Title *</label>
-              <input type="text" id="pTitle" class="form-input" required placeholder="e.g. Clean Water Technology Acceleration Grant">
-            </div>
-            <div class="form-group">
-              <label>Sector / Category *</label>
-              <select id="pCategory" class="form-select" required>
-                <option value="Agriculture & Fisheries">Agriculture & Fisheries</option>
-                <option value="Clean Energy">Clean Energy</option>
-                <option value="Technology & Innovation">Technology & Innovation</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Women Entrepreneurship">Women Entrepreneurship</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Funding Agency / Ministry *</label>
-              <input type="text" id="pAgency" class="form-input" required value="Department of Science & Technology">
-            </div>
-            <div class="form-group">
-              <label>Total Budget Corpus (INR) *</label>
-              <input type="number" id="pBudget" class="form-input" required value="30000000">
-            </div>
-            <div class="form-group">
-              <label>Min Grant Ceiling (INR) *</label>
-              <input type="number" id="pMinGrant" class="form-input" required value="1000000">
-            </div>
-            <div class="form-group">
-              <label>Max Grant Ceiling (INR) *</label>
-              <input type="number" id="pMaxGrant" class="form-input" required value="5000000">
-            </div>
-            <div class="form-group">
-              <label>Start Date *</label>
-              <input type="date" id="pStart" class="form-input" required value="2025-01-01">
-            </div>
-            <div class="form-group">
-              <label>End Date *</label>
-              <input type="date" id="pEnd" class="form-input" required value="2025-12-31">
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label>Program Description & Objectives</label>
-            <textarea id="pDesc" class="form-textarea" placeholder="Detailed program scope, objectives, and eligible expenditures..."></textarea>
-          </div>
-
-          <div style="background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
-            <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Configured Eligibility Rules (Engine Automated):</h4>
-            <ul style="font-size: 12px; color: #475569; padding-left: 20px;">
-              <li><strong>MIN_OPERATING_YEARS</strong>: Minimum 2 operational years (Mandatory)</li>
-              <li><strong>ENTITY_TYPE_ALLOWED</strong>: Startup, MSME, or Cooperative (Mandatory)</li>
-              <li><strong>GST_REGISTRATION</strong>: Valid Active GSTIN Certificate (Mandatory)</li>
-            </ul>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save & Launch Scheme</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-}
-
-async function handleCreateProgram(e) {
+function handleManualLogin(e) {
   e.preventDefault();
-  const newProg = {
-    programCode: document.getElementById('pCode').value,
-    title: document.getElementById('pTitle').value,
-    category: document.getElementById('pCategory').value,
-    fundingAgency: document.getElementById('pAgency').value,
-    totalBudget: parseFloat(document.getElementById('pBudget').value),
-    disbursedBudget: 0,
-    minGrantAmount: parseFloat(document.getElementById('pMinGrant').value),
-    maxGrantAmount: parseFloat(document.getElementById('pMaxGrant').value),
-    startDate: document.getElementById('pStart').value,
-    endDate: document.getElementById('pEnd').value,
-    status: 'ACTIVE',
-    description: document.getElementById('pDesc').value,
-    criteria: [
-      { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '2', isMandatory: 'Y', weightage: 30 },
-      { criterionCode: 'ENTITY_TYPE_ALLOWED', criterionName: 'Entity Type Allowed', criterionType: 'IN_LIST', expectedValue: 'Startup,MSME', isMandatory: 'Y', weightage: 30 },
-      { criterionCode: 'GST_REGISTRATION', criterionName: 'Valid GSTIN', criterionType: 'BOOLEAN', expectedValue: 'TRUE', isMandatory: 'Y', weightage: 40 }
-    ]
+  const u = document.getElementById('loginUsername').value.trim();
+  quickLogin(u);
+}
+
+function quickLogin(username) {
+  const user = USERS_DB[username] || {
+    userId: 99,
+    username: username,
+    fullName: username.toUpperCase(),
+    role: username.includes('officer') ? 'ROLE_PROGRAM_OFFICER' : (username.includes('rev') ? 'ROLE_REVIEWER' : 'ROLE_APPLICANT'),
+    organizationName: 'Public Sector Participant'
   };
 
-  try {
-    const res = await fetch(`${API_BASE}/programs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newProg)
-    });
-    if (res.ok) {
-      const saved = await res.json();
-      state.programs.unshift(saved);
-    } else {
-      state.programs.unshift(newProg);
-    }
-  } catch (err) {
-    state.programs.unshift(newProg);
-  }
-
-  closeModal();
-  renderContent();
-  alert('Grant Program created successfully! Ready for applications.');
+  state.currentUser = user;
+  localStorage.setItem('gms_session_user', JSON.stringify(user));
+  setDefaultTabForRole(user.role);
+  renderApp();
 }
 
-// -----------------------------------------------------------------------------
-// TAB 3: MODULE 2 - APPLICATION SUBMISSION & ELIGIBILITY CHECK
-// -----------------------------------------------------------------------------
-function renderApplications(host) {
+function handleLogout() {
+  state.currentUser = null;
+  localStorage.removeItem('gms_session_user');
+  renderApp();
+}
+
+// =============================================================================
+// ROUTING TO ROLE WORKSPACES
+// =============================================================================
+function renderPortalWorkspace() {
+  const host = document.getElementById('portalWorkspace');
+  const role = state.currentUser.role;
+
+  if (role === 'ROLE_APPLICANT') {
+    renderApplicantPortal(host);
+  } else if (role === 'ROLE_PROGRAM_OFFICER') {
+    renderOfficerPortal(host);
+  } else if (role === 'ROLE_REVIEWER') {
+    renderReviewerPortal(host);
+  } else if (role === 'ROLE_ADMIN') {
+    renderAdminPortal(host);
+  }
+}
+
+// =============================================================================
+// 1. APPLICANT PORTAL (Citizen / Startup / MSME / NGO View)
+// =============================================================================
+function renderApplicantPortal(host) {
+  if (state.currentTab === 'applicant_schemes') {
+    // Browse Available Grant Schemes & Click to Apply
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Open Central & State Government Grant Schemes</div>
+            <div class="card-desc">Explore grant schemes currently accepting proposals. Review eligibility criteria before applying.</div>
+          </div>
+          <button class="btn btn-primary" onclick="switchPortalTab('applicant_apply')">+ Start New Application</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
+          ${state.programs.filter(p => p.status === 'ACTIVE').map(p => `
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #ffffff; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <span class="badge badge-blue">${p.category}</span>
+                  <span class="badge badge-green">ACTIVE SCHEME</span>
+                </div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">${p.title}</h3>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;"><strong>Ministry:</strong> ${p.fundingAgency}</div>
+                <p style="font-size: 13px; color: #334155; margin-bottom: 14px; line-height: 1.4;">${p.description}</p>
+                
+                <div style="background: #f8fafc; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 14px;">
+                  <div><strong>Grant Ceiling:</strong> ${formatINR(p.minGrantAmount)} – ${formatINR(p.maxGrantAmount)}</div>
+                  <div><strong>Submission Horizon:</strong> ${p.startDate} to ${p.endDate}</div>
+                  <div><strong>Eligibility Summary:</strong> ${p.eligibilitySummary || 'Eligible MSMEs and Startups'}</div>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="preselectSchemeAndApply(${p.programId})" style="width: 100%; justify-content: center;">
+                Apply for this Scheme >>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else if (state.currentTab === 'applicant_my_apps') {
+    // My Submitted Applications
+    const myApps = state.applications.filter(a => a.applicant && a.applicant.username === state.currentUser.username);
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">My Submitted Grant Applications</div>
+            <div class="card-desc">Track proposal submission status, automated eligibility reports, and sanction orders.</div>
+          </div>
+          <button class="btn btn-primary" onclick="switchPortalTab('applicant_apply')">+ New Application</button>
+        </div>
+
+        ${myApps.length === 0 ? `
+          <div style="text-align: center; padding: 40px; color: #64748b;">
+            <p>You have not submitted any grant proposals yet.</p>
+            <button class="btn btn-primary" onclick="switchPortalTab('applicant_apply')" style="margin-top: 12px;">Submit Your First Application</button>
+          </div>
+        ` : `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Application No</th>
+                  <th>Project Title</th>
+                  <th>Grant Scheme</th>
+                  <th>Requested</th>
+                  <th>Approved</th>
+                  <th>Automated Eligibility</th>
+                  <th>Workflow Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${myApps.map(a => `
+                  <tr>
+                    <td><strong>${a.applicationNumber}</strong></td>
+                    <td>
+                      <div style="font-weight: 600;">${a.projectTitle}</div>
+                      <small style="color: #64748b;">Submitted: ${a.submissionDate}</small>
+                    </td>
+                    <td>${a.program ? a.program.title : 'Scheme'}</td>
+                    <td><strong>${formatINR(a.requestedAmount)}</strong></td>
+                    <td><strong style="color: #059669;">${a.approvedAmount ? formatINR(a.approvedAmount) : 'Pending Sanction'}</strong></td>
+                    <td>
+                      ${getStatusBadge(a.eligibilityStatus)}
+                      <div style="font-size: 11px; color: #475569; margin-top: 2px;">${a.eligibilityRemarks}</div>
+                    </td>
+                    <td>${getStatusBadge(a.status)}</td>
+                    <td>
+                      <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail(${a.applicationId})">Inspect Dossier</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+    `;
+  } else if (state.currentTab === 'applicant_apply') {
+    // New Application Submission Form
+    renderApplicantForm(host);
+  } else if (state.currentTab === 'applicant_uc') {
+    // Milestone Reports
+    renderApplicantUCView(host);
+  }
+}
+
+function preselectSchemeAndApply(progId) {
+  state.selectedProgramId = progId;
+  switchPortalTab('applicant_apply');
+}
+
+function renderApplicantForm(host) {
   host.innerHTML = `
-    <div class="card">
+    <div class="card" style="max-width: 900px; margin: 0 auto;">
       <div class="card-header">
         <div>
-          <div class="card-title">Grant Applications & Automated Eligibility Engine (Module 2)</div>
-          <div class="card-desc">Proposals submitted by applicants evaluated in real time against scheme criteria</div>
+          <div class="card-title">New Grant Application Submission Form</div>
+          <div class="card-desc">Enter organizational credentials and project proposal details. System evaluates eligibility automatically upon submission.</div>
         </div>
-        <button class="btn btn-primary" onclick="openNewApplicationModal()">+ Submit New Grant Application</button>
       </div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>App Number</th>
-              <th>Scheme Applied</th>
-              <th>Applicant & Entity</th>
-              <th>Requested (INR)</th>
-              <th>Eligibility Verdict</th>
-              <th>Eligibility Audit Remarks</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.applications.map(a => `
-              <tr>
-                <td><strong>${a.applicationNumber}</strong></td>
-                <td>
-                  <div style="font-weight: 500;">${a.program ? a.program.title : 'General Grant'}</div>
-                  <small style="color: #64748b;">${a.projectTitle}</small>
-                </td>
-                <td>
-                  <div>${a.applicant ? a.applicant.fullName : 'Applicant'}</div>
-                  <small style="color: #64748b;">${a.organizationType} • ${a.stateOrRegion}</small>
-                </td>
-                <td><strong>${formatINR(a.requestedAmount)}</strong></td>
-                <td>${getStatusBadge(a.eligibilityStatus)}</td>
-                <td style="max-width: 280px; font-size: 11px; color: #475569;">
-                  ${a.eligibilityRemarks || 'Checks passed.'}
-                </td>
-                <td>${getStatusBadge(a.status)}</td>
-                <td>
-                  <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail(${a.applicationId})">Inspect</button>
-                </td>
-              </tr>
+      <form onsubmit="handleApplicantSubmit(event)">
+        <!-- Step 1: Target Scheme -->
+        <div style="background: #eff6ff; padding: 16px; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 20px;">
+          <label style="font-weight: 700; color: #1e40af; font-size: 13px; display: block; margin-bottom: 6px;">1. Target Grant Scheme *</label>
+          <select id="appProgSelect" class="form-select" required style="font-weight: 600;">
+            ${state.programs.map(p => `
+              <option value="${p.programId}" ${state.selectedProgramId === p.programId ? 'selected' : ''}>
+                ${p.programCode} - ${p.title} (Allowable: ${formatINR(p.minGrantAmount)} to ${formatINR(p.maxGrantAmount)})
+              </option>
             `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-function openNewApplicationModal() {
-  const modal = document.getElementById('modalHost');
-  modal.innerHTML = `
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Submit Grant Application (Module 2)</h3>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+          </select>
         </div>
-        <form id="newAppForm" onsubmit="handleSubmitApplication(event)">
-          <div class="form-group" style="margin-bottom: 14px;">
-            <label>Select Target Grant Scheme *</label>
-            <select id="appProgId" class="form-select" required>
-              ${state.programs.map(p => `
-                <option value="${p.programId}">${p.programCode} - ${p.title} (${formatINR(p.minGrantAmount)} to ${formatINR(p.maxGrantAmount)})</option>
-              `).join('')}
+
+        <!-- Step 2: Legal Organization Profile -->
+        <h4 style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">2. Legal Organization Credentials (Checked by Rule Engine)</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Legal Entity Type *</label>
+            <select id="appOrgType" class="form-select" required>
+              <option value="Startup">DPIIT Recognized Startup</option>
+              <option value="MSME">Registered MSME (Udyam)</option>
+              <option value="Cooperative Society">Cooperative Society</option>
+              <option value="NGO / Trust">Section 8 / Registered NGO</option>
+              <option value="Academic Institution">University / Research Lab</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Years in Operation * (Eligibility Checked)</label>
+            <input type="number" id="appYears" class="form-input" required value="3" min="0">
+          </div>
+          <div class="form-group">
+            <label>Organization PAN (10 Characters) *</label>
+            <input type="text" id="appPan" class="form-input" required value="AAACK1234F" maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>GSTIN Number *</label>
+            <input type="text" id="appGstin" class="form-input" required value="24AAACK1234F1Z8">
+          </div>
+          <div class="form-group">
+            <label>Annual Turnover (INR) *</label>
+            <input type="number" id="appTurnover" class="form-input" required value="12000000">
+          </div>
+          <div class="form-group">
+            <label>State & District *</label>
+            <input type="text" id="appLocation" class="form-input" required value="Surat, Gujarat">
+          </div>
+        </div>
 
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Organization Legal Entity Type *</label>
-              <select id="appOrgType" class="form-select" required>
-                <option value="Startup">DPIIT Recognized Startup</option>
-                <option value="MSME">Registered MSME (Udyam)</option>
-                <option value="NGO / Trust">Section 8 / Registered NGO</option>
-                <option value="Academic Institution">University / Research Lab</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Years in Operation * (Eligibility Checked)</label>
-              <input type="number" id="appYears" class="form-input" required value="3" min="0">
-            </div>
-            <div class="form-group">
-              <label>Organization PAN (10 chars) *</label>
-              <input type="text" id="appPan" class="form-input" required value="AABCK${Math.floor(Math.random()*9000)+1000}F" maxlength="10">
-            </div>
-            <div class="form-group">
-              <label>GSTIN Number *</label>
-              <input type="text" id="appGstin" class="form-input" required value="24AABCK1234F1Z8">
-            </div>
-            <div class="form-group">
-              <label>Annual Turnover (INR) *</label>
-              <input type="number" id="appTurnover" class="form-input" required value="12000000">
-            </div>
-            <div class="form-group">
-              <label>State / Region *</label>
-              <input type="text" id="appState" class="form-input" required value="Gujarat">
-            </div>
-            <div class="form-group">
-              <label>District *</label>
-              <input type="text" id="appDistrict" class="form-input" required value="Ahmedabad">
-            </div>
-            <div class="form-group">
-              <label>Requested Grant Amount (INR) *</label>
-              <input type="number" id="appAmount" class="form-input" required value="4000000">
-            </div>
-            <div class="form-group">
-              <label>Project Duration (Months) *</label>
-              <input type="number" id="appDuration" class="form-input" required value="18" min="1">
-            </div>
+        <!-- Step 3: Proposal Details -->
+        <h4 style="font-size: 14px; font-weight: 700; color: #0f172a; margin: 20px 0 12px;">3. Project Proposal & Financial Request</h4>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label>Project Proposal Title *</label>
+          <input type="text" id="appTitle" class="form-input" required placeholder="e.g. Next-Gen Bio-Enzyme Conversion Plant">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Requested Grant Amount (INR) *</label>
+            <input type="number" id="appRequestedAmt" class="form-input" required value="4000000">
           </div>
+          <div class="form-group">
+            <label>Project Duration (Months) *</label>
+            <input type="number" id="appDuration" class="form-input" required value="18" min="1">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Detailed Project Summary & Technical Scope *</label>
+          <textarea id="appSummary" class="form-textarea" required placeholder="Explain technological innovation, work packages, milestones, and beneficiaries..."></textarea>
+        </div>
 
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label>Project Proposal Title *</label>
-            <input type="text" id="appTitle" class="form-input" required placeholder="e.g. Next-Gen Bio-Enzyme Conversion Plant">
-          </div>
-          <div class="form-group" style="margin-bottom: 14px;">
-            <label>Detailed Project Summary & Methodology *</label>
-            <textarea id="appSummary" class="form-textarea" required placeholder="Explain technological innovation, work packages, milestones, and beneficiaries..."></textarea>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Run Automated Eligibility & Submit >> </button>
-          </div>
-        </form>
-      </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="switchPortalTab('applicant_my_apps')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Run Eligibility Check & Submit Application >></button>
+        </div>
+      </form>
     </div>
   `;
 }
 
-async function handleSubmitApplication(e) {
+function handleApplicantSubmit(e) {
   e.preventDefault();
-  const progId = parseInt(document.getElementById('appProgId').value);
+  const progId = parseInt(document.getElementById('appProgSelect').value);
   const prog = state.programs.find(p => p.programId === progId) || state.programs[0];
-  const requestedAmt = parseFloat(document.getElementById('appAmount').value);
+  const reqAmt = parseFloat(document.getElementById('appRequestedAmt').value);
   const years = parseInt(document.getElementById('appYears').value);
 
-  // Client-side rule execution simulation matching EligibilityEngineService
-  let eligible = true;
+  // Client-side execution of Eligibility Engine
+  let isEligible = true;
   let remarks = [];
 
-  if (requestedAmt < prog.minGrantAmount || requestedAmt > prog.maxGrantAmount) {
-    eligible = false;
-    remarks.push(`Requested amount (${formatINR(requestedAmt)}) outside permitted range (${formatINR(prog.minGrantAmount)} - ${formatINR(prog.maxGrantAmount)}).`);
+  if (reqAmt < prog.minGrantAmount || reqAmt > prog.maxGrantAmount) {
+    isEligible = false;
+    remarks.push(`Requested amount (${formatINR(reqAmt)}) outside allowed ceiling (${formatINR(prog.minGrantAmount)} - ${formatINR(prog.maxGrantAmount)}).`);
   }
   if (years < 2) {
-    eligible = false;
-    remarks.push('Failed MIN_OPERATING_YEARS rule (Required: 2, Actual: ' + years + ').');
+    isEligible = false;
+    remarks.push(`Failed MIN_OPERATING_YEARS (Required: 2, Actual: ${years}).`);
   }
   if (remarks.length === 0) {
-    remarks.push('All mandatory program criteria and ceilings validated successfully.');
+    remarks.push('All mandatory program criteria and grant ceilings validated successfully.');
   }
-
-  const payload = {
-    programId: progId,
-    projectTitle: document.getElementById('appTitle').value,
-    projectSummary: document.getElementById('appSummary').value,
-    requestedAmount: requestedAmt,
-    projectDurationMonths: parseInt(document.getElementById('appDuration').value),
-    targetBeneficiaries: 'Farmers & rural MSME units',
-    stateOrRegion: document.getElementById('appState').value,
-    district: document.getElementById('appDistrict').value,
-    organizationType: document.getElementById('appOrgType').value,
-    organizationPan: document.getElementById('appPan').value,
-    organizationGstin: document.getElementById('appGstin').value,
-    annualTurnover: parseFloat(document.getElementById('appTurnover').value),
-    yearsInOperation: years
-  };
 
   const newApp = {
     applicationId: state.applications.length + 1,
     applicationNumber: `APP-2025-${Math.floor(Math.random()*90000)+10000}`,
     program: prog,
     applicant: state.currentUser,
-    ...payload,
-    eligibilityStatus: eligible ? 'AUTO_ELIGIBLE' : 'AUTO_INELIGIBLE',
+    projectTitle: document.getElementById('appTitle').value,
+    projectSummary: document.getElementById('appSummary').value,
+    requestedAmount: reqAmt,
+    approvedAmount: null,
+    projectDurationMonths: parseInt(document.getElementById('appDuration').value),
+    organizationType: document.getElementById('appOrgType').value,
+    organizationPan: document.getElementById('appPan').value,
+    organizationGstin: document.getElementById('appGstin').value,
+    annualTurnover: parseFloat(document.getElementById('appTurnover').value),
+    yearsInOperation: years,
+    stateOrRegion: document.getElementById('appLocation').value.split(',')[1] || 'State',
+    district: document.getElementById('appLocation').value.split(',')[0] || 'District',
+    eligibilityStatus: isEligible ? 'AUTO_ELIGIBLE' : 'AUTO_INELIGIBLE',
     eligibilityRemarks: remarks.join('; '),
     status: 'SUBMITTED',
-    submissionDate: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    submissionDate: new Date().toISOString().substring(0, 10),
+    assignedReviewer: null,
+    reviewScores: null
   };
 
-  try {
-    const res = await fetch(`${API_BASE}/applications`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      const saved = await res.json();
-      state.applications.unshift(saved);
-    } else {
-      state.applications.unshift(newApp);
-    }
-  } catch (err) {
-    state.applications.unshift(newApp);
-  }
+  state.applications.unshift(newApp);
 
-  closeModal();
-  renderContent();
-  alert(`Application Submitted! \nAutomated Verdict: ${newApp.eligibilityStatus}\nRemarks: ${newApp.eligibilityRemarks}`);
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Applicant)`,
+    action: 'SUBMIT',
+    entity: newApp.applicationNumber,
+    ip: '127.0.0.1',
+    details: `Application submitted. Eligibility Verdict: ${newApp.eligibilityStatus}.`
+  });
+
+  alert(`Application Submitted Successfully!\n\nApplication Number: ${newApp.applicationNumber}\nAutomated Eligibility: ${newApp.eligibilityStatus}\nAudit Notes: ${newApp.eligibilityRemarks}`);
+  switchPortalTab('applicant_my_apps');
 }
 
-// -----------------------------------------------------------------------------
-// TAB 4: MODULE 3 - REVIEW & APPROVAL WORKFLOW
-// -----------------------------------------------------------------------------
-function renderReviews(host) {
+function renderApplicantUCView(host) {
   host.innerHTML = `
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Peer Review & Sanction Desk (Module 3)</div>
-          <div class="card-desc">Rubric-based evaluation (0-100), reviewer recommendations, and sanctioning committee approval</div>
+          <div class="card-title">Milestone Progress & Utilization Certificate (UC) Submission</div>
+          <div class="card-desc">For approved and disbursed grants: Submit milestone achievements and expenditure vouchers to unlock subsequent tranches.</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Sanctioned Application</th>
+              <th>Sanctioned Amount</th>
+              <th>Milestone Title & Scope</th>
+              <th>Claimed Expenditure</th>
+              <th>Progress %</th>
+              <th>Audit Status</th>
+              <th>Officer Verification Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.utilizationReports.map(u => `
+              <tr>
+                <td><strong>${u.application ? u.application.applicationNumber : 'APP'}</strong></td>
+                <td><strong>${formatINR(u.application ? u.application.approvedAmount : 4200000)}</strong></td>
+                <td>
+                  <div style="font-weight: 600;">${u.milestoneTitle}</div>
+                  <small style="color: #64748b;">${u.progressNarrative}</small>
+                </td>
+                <td><strong>${formatINR(u.amountUtilized)}</strong></td>
+                <td><strong style="color: #059669;">${u.utilizationPercentage}%</strong></td>
+                <td>${getStatusBadge(u.verificationStatus)}</td>
+                <td style="font-size: 11px; color: #475569;">${u.verificationRemarks || 'Site inspection audit pending.'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px; text-align: right;">
+        <button class="btn btn-primary" onclick="openSubmitUCModal()">+ Submit New Utilization Certificate</button>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================================
+// 2. PROGRAM OFFICER PORTAL (Ministry / DST Officer View)
+// =============================================================================
+function renderOfficerPortal(host) {
+  if (state.currentTab === 'officer_overview') {
+    renderDashboard(host);
+  } else if (state.currentTab === 'officer_schemes') {
+    renderPrograms(host);
+  } else if (state.currentTab === 'officer_scrutiny') {
+    renderOfficerScrutinyDesk(host);
+  } else if (state.currentTab === 'officer_disbursements') {
+    renderOfficerDisbursementDesk(host);
+  }
+}
+
+function renderOfficerScrutinyDesk(host) {
+  host.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Application Scrutiny & Sanction Order Desk (M2 / M3)</div>
+          <div class="card-desc">Inspect automated eligibility results, assign peer reviewers, inspect evaluation scorecards, and issue Sanction Orders.</div>
         </div>
       </div>
 
@@ -915,30 +976,480 @@ function renderReviews(host) {
           <thead>
             <tr>
               <th>App Number</th>
-              <th>Project Title</th>
-              <th>Applicant</th>
-              <th>Requested</th>
-              <th>Eligibility</th>
-              <th>Workflow Status</th>
-              <th>Actions</th>
+              <th>Project Title & Scheme</th>
+              <th>Applicant Entity</th>
+              <th>Requested (INR)</th>
+              <th>Automated Eligibility</th>
+              <th>Assigned Reviewer</th>
+              <th>Peer Score</th>
+              <th>Status</th>
+              <th>Officer Actions</th>
             </tr>
           </thead>
           <tbody>
             ${state.applications.map(a => `
               <tr>
                 <td><strong>${a.applicationNumber}</strong></td>
-                <td>${a.projectTitle}</td>
-                <td>${a.applicant ? a.applicant.fullName : 'Applicant'}</td>
+                <td>
+                  <div style="font-weight: 600;">${a.projectTitle}</div>
+                  <small style="color: #64748b;">${a.program ? a.program.title : 'Scheme'}</small>
+                </td>
+                <td>
+                  <div>${a.applicant ? a.applicant.fullName : 'Applicant'}</div>
+                  <small style="color: #64748b;">${a.organizationType} • ${a.stateOrRegion}</small>
+                </td>
                 <td><strong>${formatINR(a.requestedAmount)}</strong></td>
-                <td>${getStatusBadge(a.eligibilityStatus)}</td>
+                <td>
+                  ${getStatusBadge(a.eligibilityStatus)}
+                  <div style="font-size: 10px; color: #475569; max-width: 200px;">${a.eligibilityRemarks}</div>
+                </td>
+                <td>
+                  ${a.assignedReviewer ? `
+                    <div style="font-size: 12px; font-weight: 600;">${a.assignedReviewer.fullName}</div>
+                    <small style="color: #64748b;">${a.assignedReviewer.organizationName}</small>
+                  ` : `
+                    <button class="btn btn-secondary btn-sm" onclick="openAssignReviewerModal(${a.applicationId})">Assign Reviewer</button>
+                  `}
+                </td>
+                <td>
+                  ${a.reviewScores ? `
+                    <span class="badge badge-purple" style="font-size: 12px;">${a.reviewScores.total} / 100</span>
+                    <div style="font-size: 10px; color: #059669; font-weight: 600;">${a.reviewScores.recommendation}</div>
+                  ` : `
+                    <small style="color: #94a3b8;">Pending Review</small>
+                  `}
+                </td>
                 <td>${getStatusBadge(a.status)}</td>
                 <td>
                   <div style="display: flex; gap: 4px;">
-                    <button class="btn btn-secondary btn-sm" onclick="openScorecardModal(${a.applicationId})">Score Rubric</button>
-                    ${state.currentUser.role === 'ROLE_PROGRAM_OFFICER' || state.currentUser.role === 'ROLE_ADMIN' ? `
+                    <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail(${a.applicationId})">Inspect</button>
+                    ${a.status !== 'APPROVED' && a.status !== 'DISBURSED' && a.status !== 'REJECTED' ? `
                       <button class="btn btn-primary btn-sm" onclick="openDecisionModal(${a.applicationId})">Sanction</button>
-                    ` : ''}
+                    ` : `
+                      <span class="badge badge-green">Order Issued</span>
+                    `}
                   </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAssignReviewerModal(appId) {
+  const app = state.applications.find(a => a.applicationId === appId);
+  if (!app) return;
+
+  const modal = document.getElementById('modalHost');
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Assign Technical Reviewer: ${app.applicationNumber}</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        <form onsubmit="handleAssignReviewer(event, ${appId})">
+          <p style="font-size: 13px; color: #475569; margin-bottom: 16px;">
+            Select an accredited domain expert or academic reviewer from the Technical Evaluation Panel:
+          </p>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Accredited Reviewer *</label>
+            <select id="selReviewerId" class="form-select" required>
+              <option value="reviewer_kapoor">Dr. Alok Kapoor - Professor, IIT Delhi (Dept of Electrical & IoT Engg)</option>
+              <option value="reviewer_iyer">Dr. Meenakshi Iyer - Principal Investigator, IISc Bangalore (Bio-Systems)</option>
+            </select>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Confirm Review Assignment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function handleAssignReviewer(e, appId) {
+  e.preventDefault();
+  const revKey = document.getElementById('selReviewerId').value;
+  const rev = USERS_DB[revKey] || { fullName: 'Dr. Alok Kapoor', organizationName: 'IIT Delhi' };
+
+  const app = state.applications.find(a => a.applicationId === appId);
+  if (app) {
+    app.assignedReviewer = rev;
+    app.status = 'UNDER_REVIEW';
+  }
+
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Officer)`,
+    action: 'ASSIGN_REVIEWER',
+    entity: app.applicationNumber,
+    ip: '10.20.1.45',
+    details: `Assigned technical appraisal to ${rev.fullName}.`
+  });
+
+  closeModal();
+  renderApp();
+  alert(`Assigned ${app.applicationNumber} to ${rev.fullName}. Proposal is now UNDER_REVIEW.`);
+}
+
+function renderOfficerDisbursementDesk(host) {
+  host.innerHTML = `
+    <!-- Multi-Tranche Disbursements -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">PFMS Grant Disbursement Execution Desk (Module 4)</div>
+          <div class="card-desc">Execute multi-tranche disbursements to verified bank accounts. Automatically updates scheme budget counters.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openScheduleDisbModal()">+ Schedule New Tranche</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>PFMS Reference</th>
+              <th>Sanctioned Application</th>
+              <th>Tranche</th>
+              <th>Amount (INR)</th>
+              <th>Mode</th>
+              <th>Bank / Masked A/C</th>
+              <th>IFSC</th>
+              <th>Status</th>
+              <th>Execution Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.disbursements.map(d => `
+              <tr>
+                <td><strong>${d.disbursementReference}</strong></td>
+                <td>${d.application ? d.application.applicationNumber : 'APP'}</td>
+                <td><span class="badge badge-purple">Tranche ${d.trancheNumber}</span></td>
+                <td><strong>${formatINR(d.disbursementAmount)}</strong></td>
+                <td>${d.paymentMethod}</td>
+                <td>${d.bankName} (${d.accountNumberMasked})</td>
+                <td>${d.ifscCode}</td>
+                <td>${getStatusBadge(d.status)}</td>
+                <td>
+                  ${d.status === 'SCHEDULED' ? `
+                    <button class="btn btn-success btn-sm" onclick="executeDisbursementNow(${d.disbursementId})">Trigger PFMS Payment</button>
+                  ` : `
+                    <span class="badge badge-green">Voucher Executed (${d.disbursementDate})</span>
+                  `}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Utilization Certificate Verification -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Milestone Utilization Certificate (UC) Verification Desk</div>
+          <div class="card-desc">Physical audit & voucher scrutiny before unlocking subsequent tranches.</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Application</th>
+              <th>Milestone Scope</th>
+              <th>Claimed Expenditure</th>
+              <th>Progress %</th>
+              <th>Audit Status</th>
+              <th>Officer Verification Remarks</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.utilizationReports.map(u => `
+              <tr>
+                <td><strong>${u.application ? u.application.applicationNumber : 'APP'}</strong></td>
+                <td>
+                  <div style="font-weight: 600;">${u.milestoneTitle}</div>
+                  <small style="color: #64748b;">${u.progressNarrative}</small>
+                </td>
+                <td><strong>${formatINR(u.amountUtilized)}</strong></td>
+                <td><strong style="color: #059669;">${u.utilizationPercentage}%</strong></td>
+                <td>${getStatusBadge(u.verificationStatus)}</td>
+                <td style="font-size: 11px; color: #475569;">${u.verificationRemarks || 'Pending site visit inspection.'}</td>
+                <td>
+                  ${u.verificationStatus === 'PENDING_VERIFICATION' ? `
+                    <button class="btn btn-success btn-sm" onclick="verifyUCReport(${u.reportId})">Verify & Pass UC</button>
+                  ` : `
+                    <span class="badge badge-green">Passed</span>
+                  `}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openScheduleDisbModal() {
+  const approvedApps = state.applications.filter(a => a.status === 'APPROVED' || a.status === 'DISBURSED');
+  const modal = document.getElementById('modalHost');
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Schedule Disbursement Tranche (PFMS)</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        <form onsubmit="handleScheduleDisbSubmit(event)">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Select Sanctioned Application *</label>
+            <select id="disbAppId" class="form-select" required>
+              ${approvedApps.map(a => `
+                <option value="${a.applicationId}">${a.applicationNumber} - ${a.projectTitle} (Sanctioned: ${formatINR(a.approvedAmount || a.requestedAmount)})</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tranche Number *</label>
+              <input type="number" id="disbTranche" class="form-input" required value="2" min="1">
+            </div>
+            <div class="form-group">
+              <label>Disbursement Amount (INR) *</label>
+              <input type="number" id="disbAmt" class="form-input" required value="1700000">
+            </div>
+            <div class="form-group">
+              <label>Payment Method *</label>
+              <select id="disbMethod" class="form-select" required>
+                <option value="PFMS_NEFT">PFMS NEFT Transfer</option>
+                <option value="RTGS">Treasury RTGS</option>
+                <option value="DIRECT_BENEFIT_TRANSFER">Direct Benefit Transfer (DBT)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Bank Name *</label>
+              <input type="text" id="disbBank" class="form-input" required value="State Bank of India">
+            </div>
+            <div class="form-group">
+              <label>Beneficiary Masked A/C *</label>
+              <input type="text" id="disbAcc" class="form-input" required value="XXXXXX1234">
+            </div>
+            <div class="form-group">
+              <label>IFSC Code *</label>
+              <input type="text" id="disbIfsc" class="form-input" required value="SBIN0001234">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Scheduled Payment Date *</label>
+            <input type="date" id="disbDate" class="form-input" required value="2025-02-15">
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Schedule Payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function handleScheduleDisbSubmit(e) {
+  e.preventDefault();
+  const appId = parseInt(document.getElementById('disbAppId').value);
+  const app = state.applications.find(a => a.applicationId === appId);
+
+  const newDisb = {
+    disbursementId: state.disbursements.length + 1,
+    application: app,
+    trancheNumber: parseInt(document.getElementById('disbTranche').value),
+    disbursementReference: `PFMS-TR-2025-${Math.floor(Math.random()*90000)+10000}`,
+    disbursementAmount: parseFloat(document.getElementById('disbAmt').value),
+    paymentMethod: document.getElementById('disbMethod').value,
+    bankName: document.getElementById('disbBank').value,
+    accountNumberMasked: document.getElementById('disbAcc').value,
+    ifscCode: document.getElementById('disbIfsc').value,
+    scheduledDate: document.getElementById('disbDate').value,
+    status: 'SCHEDULED',
+    remarks: 'Scheduled by Program Officer.'
+  };
+
+  state.disbursements.unshift(newDisb);
+  closeModal();
+  renderApp();
+  alert(`Disbursement voucher ${newDisb.disbursementReference} scheduled successfully!`);
+}
+
+function executeDisbursementNow(disbId) {
+  const disb = state.disbursements.find(d => d.disbursementId === disbId);
+  if (!disb) return;
+
+  const txn = prompt('Enter PFMS Payment Gateway Transaction Reference:', `PFMS${Date.now()}`);
+  if (!txn) return;
+
+  disb.status = 'DISBURSED';
+  disb.transactionReference = txn;
+  disb.disbursementDate = new Date().toISOString().substring(0, 10);
+
+  state.stats.totalDisbursedBudget += disb.disbursementAmount;
+  state.stats.budgetUtilizationRate = (state.stats.totalDisbursedBudget / state.stats.totalAllocatedBudget) * 100;
+
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Officer)`,
+    action: 'DISBURSE',
+    entity: disb.disbursementReference,
+    ip: '10.20.1.45',
+    details: `Executed PFMS tranche payment of INR ${disb.disbursementAmount}. Txn Ref: ${txn}`
+  });
+
+  renderApp();
+  alert(`Disbursement ${disb.disbursementReference} executed via PFMS!\nAmount: ${formatINR(disb.disbursementAmount)}\nProgram Budget Tally Updated.`);
+}
+
+function verifyUCReport(repId) {
+  const rep = state.utilizationReports.find(r => r.reportId === repId);
+  if (!rep) return;
+
+  const remarks = prompt('Enter Officer Verification Audit Remarks:', 'Physical site inspection verified by district officer. Vouchers audited.');
+  if (remarks) {
+    rep.verificationStatus = 'VERIFIED_SATISFACTORY';
+    rep.verificationRemarks = remarks;
+    renderApp();
+    alert('Milestone Utilization Certificate verified satisfactory! Subsequent tranche unlocked.');
+  }
+}
+
+function openSubmitUCModal() {
+  const modal = document.getElementById('modalHost');
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Submit Milestone Utilization Certificate</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        <form onsubmit="handleUCSubmit(event)">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Select Application *</label>
+            <select id="ucAppId" class="form-select" required>
+              ${state.applications.map(a => `
+                <option value="${a.applicationId}">${a.applicationNumber} - ${a.projectTitle}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tranche Number *</label>
+              <input type="number" id="ucTranche" class="form-input" required value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>Amount Utilized (INR) *</label>
+              <input type="number" id="ucAmt" class="form-input" required value="2400000">
+            </div>
+            <div class="form-group">
+              <label>Utilization Percentage (0-100) *</label>
+              <input type="number" id="ucPct" class="form-input" required value="96" min="0" max="100">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Milestone Title *</label>
+            <input type="text" id="ucTitle" class="form-input" required value="Civil work and equipment installation completed.">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Detailed Progress Narrative & Vouchers Summary *</label>
+            <textarea id="ucNarrative" class="form-textarea" required>Procured all equipment and finished installation on site.</textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit for Officer Verification</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function handleUCSubmit(e) {
+  e.preventDefault();
+  const appId = parseInt(document.getElementById('ucAppId').value);
+  const app = state.applications.find(a => a.applicationId === appId);
+
+  const newUC = {
+    reportId: state.utilizationReports.length + 1,
+    application: app,
+    trancheNumber: parseInt(document.getElementById('ucTranche').value),
+    milestoneTitle: document.getElementById('ucTitle').value,
+    amountUtilized: parseFloat(document.getElementById('ucAmt').value),
+    utilizationPercentage: parseFloat(document.getElementById('ucPct').value),
+    progressNarrative: document.getElementById('ucNarrative').value,
+    verificationStatus: 'PENDING_VERIFICATION'
+  };
+
+  state.utilizationReports.unshift(newUC);
+  closeModal();
+  renderApp();
+  alert('Utilization Certificate submitted! Awaiting Program Officer verification.');
+}
+
+// =============================================================================
+// 3. REVIEWER PORTAL (Evaluation Committee View)
+// =============================================================================
+function renderReviewerPortal(host) {
+  const assigned = state.applications.filter(a => a.assignedReviewer && a.assignedReviewer.username === state.currentUser.username);
+
+  host.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Technical Evaluation Panel Review Queue</div>
+          <div class="card-desc">Appraise assigned grant proposals across four standardized dimensions: Feasibility, Innovation, Budget Realism, and Social Impact.</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>App Number</th>
+              <th>Project Proposal Title</th>
+              <th>Grant Scheme</th>
+              <th>Requested (INR)</th>
+              <th>Applicant Organization</th>
+              <th>Review Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assigned.map(a => `
+              <tr>
+                <td><strong>${a.applicationNumber}</strong></td>
+                <td>
+                  <div style="font-weight: 600;">${a.projectTitle}</div>
+                  <small style="color: #64748b;">${a.projectSummary.substring(0, 80)}...</small>
+                </td>
+                <td>${a.program ? a.program.title : 'Scheme'}</td>
+                <td><strong>${formatINR(a.requestedAmount)}</strong></td>
+                <td>${a.applicant ? a.applicant.organizationName : 'Applicant Corp'}</td>
+                <td>
+                  ${a.reviewScores ? `
+                    <span class="badge badge-green">Score: ${a.reviewScores.total}/100 (${a.reviewScores.recommendation})</span>
+                  ` : `
+                    <span class="badge badge-yellow">Evaluation Pending</span>
+                  `}
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" onclick="openScorecardModal(${a.applicationId})">
+                    ${a.reviewScores ? 'Update Scorecard' : 'Score Rubric >>'}
+                  </button>
                 </td>
               </tr>
             `).join('')}
@@ -1010,7 +1521,7 @@ function openScorecardModal(appId) {
               <label>Reviewer Recommendation *</label>
               <select id="revRec" class="form-select" required>
                 <option value="RECOMMEND_APPROVE">RECOMMEND APPROVE (High Priority Sanction)</option>
-                <option value="NEEDS_REVISION">NEEDS REVISION (Request Additional Financial Details)</option>
+                <option value="NEEDS_REVISION">NEEDS REVISION (Request Additional Details)</option>
                 <option value="RECOMMEND_REJECT">RECOMMEND REJECT (Fails Technology Feasibility)</option>
               </select>
             </div>
@@ -1049,12 +1560,37 @@ function updateScoreTotal() {
 function handleSaveScorecard(e, appId) {
   e.preventDefault();
   const app = state.applications.find(a => a.applicationId === appId);
+  const f = parseInt(document.getElementById('fScore').value) || 0;
+  const i = parseInt(document.getElementById('iScore').value) || 0;
+  const b = parseInt(document.getElementById('bScore').value) || 0;
+  const s = parseInt(document.getElementById('sScore').value) || 0;
+  const rec = document.getElementById('revRec').value;
+  const comm = document.getElementById('revComments').value;
+
   if (app) {
-    app.status = 'UNDER_REVIEW';
+    app.reviewScores = {
+      feasibility: f,
+      innovation: i,
+      budget: b,
+      social: s,
+      total: f + i + b + s,
+      recommendation: rec,
+      comments: comm
+    };
   }
+
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Reviewer)`,
+    action: 'SUBMIT_REVIEW',
+    entity: app.applicationNumber,
+    ip: '14.139.45.10',
+    details: `Technical Score: ${f+i+b+s}/100 | Recommendation: ${rec}`
+  });
+
   closeModal();
-  renderContent();
-  alert('Review Scorecard Submitted! Cumulative score calculated and recorded in audit log.');
+  renderApp();
+  alert(`Scorecard Submitted!\nTotal Score: ${f+i+b+s}/100\nRecommendation: ${rec}`);
 }
 
 function openDecisionModal(appId) {
@@ -1095,7 +1631,7 @@ function openDecisionModal(appId) {
   `;
 }
 
-async function handleDecisionSubmit(e, appId) {
+function handleDecisionSubmit(e, appId) {
   e.preventDefault();
   const dec = document.getElementById('decType').value;
   const amt = parseFloat(document.getElementById('decAmt').value);
@@ -1107,124 +1643,186 @@ async function handleDecisionSubmit(e, appId) {
     if (dec === 'APPROVE') app.approvedAmount = amt;
   }
 
-  try {
-    await fetch(`${API_BASE}/applications/${appId}/decision`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ decision: dec, approvedAmount: amt, decisionNotes: notes })
-    });
-  } catch (err) {}
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Officer)`,
+    action: dec === 'APPROVE' ? 'APPROVE' : 'REJECT',
+    entity: app.applicationNumber,
+    ip: '10.20.1.45',
+    details: `Sanction decision: ${dec}. Approved Amount: INR ${amt}. Notes: ${notes}`
+  });
 
   closeModal();
-  renderContent();
-  alert(`Decision executed: ${dec} recorded for ${app.applicationNumber}`);
+  renderApp();
+  alert(`Decision Executed!\n${app.applicationNumber} status updated to ${app.status}.`);
 }
 
-// -----------------------------------------------------------------------------
-// TAB 5: MODULE 4 - GRANT DISBURSEMENT AND REPORTING
-// -----------------------------------------------------------------------------
-function renderDisbursements(host) {
-  host.innerHTML = `
-    <!-- Multi-Tranche Disbursements -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Grant Disbursements Tracker (Module 4)</div>
-          <div class="card-desc">Manage multi-tranche payment releases via PFMS, DBT, and treasury transfers</div>
+// =============================================================================
+// 4. SYSTEM ADMINISTRATOR PORTAL (Governance View)
+// =============================================================================
+function renderAdminPortal(host) {
+  if (state.currentTab === 'admin_overview') {
+    renderDashboard(host);
+  } else if (state.currentTab === 'admin_users') {
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">System Users & Role-Based Access Governance</div>
+            <div class="card-desc">Active system stakeholders, permissions, and departmental affiliations.</div>
+          </div>
         </div>
-        ${state.currentUser.role === 'ROLE_PROGRAM_OFFICER' || state.currentUser.role === 'ROLE_ADMIN' ? `
-          <button class="btn btn-primary" onclick="openScheduleDisbModal()">+ Schedule New Tranche</button>
-        ` : ''}
-      </div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>PFMS Reference</th>
-              <th>Application & Beneficiary</th>
-              <th>Tranche</th>
-              <th>Amount (INR)</th>
-              <th>Payment Mode</th>
-              <th>Bank / Masked A/C</th>
-              <th>Disbursed Date</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${state.disbursements.map(d => `
+        <div class="table-container">
+          <table>
+            <thead>
               <tr>
-                <td><strong>${d.disbursementReference}</strong></td>
-                <td>
-                  <div>${d.application ? d.application.applicationNumber : 'Grant Beneficiary'}</div>
-                  <small style="color: #64748b;">${d.bankName}</small>
-                </td>
-                <td><span class="badge badge-purple">Tranche ${d.trancheNumber}</span></td>
-                <td><strong>${formatINR(d.disbursementAmount)}</strong></td>
-                <td>${d.paymentMethod}</td>
-                <td>${d.accountNumberMasked} (${d.ifscCode})</td>
-                <td>${d.disbursementDate || d.scheduledDate}</td>
-                <td>${getStatusBadge(d.status)}</td>
-                <td>
-                  ${d.status === 'SCHEDULED' ? `
-                    <button class="btn btn-success btn-sm" onclick="executeDisbursementNow(${d.disbursementId})">Execute Payment</button>
-                  ` : `
-                    <span class="badge badge-green">Voucher Settled</span>
-                  `}
-                </td>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role Code</th>
+                <th>Department / Organization</th>
+                <th>Status</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${Object.values(USERS_DB).map(u => `
+                <tr>
+                  <td><strong>${u.username}</strong></td>
+                  <td>${u.fullName}</td>
+                  <td>${u.email}</td>
+                  <td><span class="role-tag">${u.role}</span></td>
+                  <td>${u.organizationName}</td>
+                  <td><span class="badge badge-green">ACTIVE</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else if (state.currentTab === 'admin_audit') {
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Immutable Security & Transaction Audit Trail</div>
+            <div class="card-desc">Complete event logs recording logins, scheme creation, eligibility evaluation, and PFMS disbursements.</div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User / Actor</th>
+                <th>Action Code</th>
+                <th>Target Entity</th>
+                <th>IP Address</th>
+                <th>Audit Event Summary</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${state.auditLogs.map(l => `
+                <tr>
+                  <td><small>${l.timestamp}</small></td>
+                  <td><strong>${l.user}</strong></td>
+                  <td><span class="badge badge-purple">${l.action}</span></td>
+                  <td>${l.entity}</td>
+                  <td><code>${l.ip}</code></td>
+                  <td style="font-size: 12px; color: #334155;">${l.details}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Shared Overview Dashboard
+function renderDashboard(host) {
+  const s = state.stats;
+  host.innerHTML = `
+    <!-- Top Metric KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Allocated Budget</div>
+        <div class="kpi-value">${formatINR(s.totalAllocatedBudget)}</div>
+        <div class="kpi-sub">${s.totalPrograms} Total Grant Schemes</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-title">Disbursed Funds to Date</div>
+        <div class="kpi-value">${formatINR(s.totalDisbursedBudget)}</div>
+        <div class="kpi-sub">${s.budgetUtilizationRate.toFixed(1)}% of total corpus released</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-title">Proposals in Pipeline</div>
+        <div class="kpi-value">${s.totalApplications}</div>
+        <div class="kpi-sub">${s.applicationsUnderReview} Under Peer Review</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-title">Sanctioned & Disbursed</div>
+        <div class="kpi-value">${s.applicationsApproved + s.applicationsDisbursed}</div>
+        <div class="kpi-sub">${s.applicationsDisbursed} Disbursed via PFMS/RTGS</div>
       </div>
     </div>
 
-    <!-- Milestone Utilization Certificates (UC) -->
+    <!-- Budget Allocation Meter -->
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Milestone Progress & Utilization Certificates (UC)</div>
-          <div class="card-desc">Beneficiary progress submissions audited before unlocking subsequent tranches</div>
+          <div class="card-title">Fiscal Year Fund Utilization Benchmark</div>
+          <div class="card-desc">Real-time expenditure tracking against cabinet sanctioned grant ceilings</div>
         </div>
-        <button class="btn btn-secondary" onclick="openSubmitUCModal()">+ Submit Utilization Certificate</button>
+        <span class="badge badge-green" style="font-size: 13px;">${s.budgetUtilizationRate.toFixed(2)}% Disbursed</span>
       </div>
+      <div class="progress-bar-bg" style="height: 14px;">
+        <div class="progress-bar-fill" style="width: ${Math.min(s.budgetUtilizationRate, 100)}%;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #64748b;">
+        <span>Sanctioned: ${formatINR(s.totalAllocatedBudget)}</span>
+        <span>Remaining: ${formatINR(s.totalAllocatedBudget - s.totalDisbursedBudget)}</span>
+      </div>
+    </div>
 
+    <!-- Recent Grant Applications Feed -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Grant Submissions & Sanctions Registry</div>
+          <div class="card-desc">Proposals across sectors evaluated against scheme rubrics</div>
+        </div>
+      </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>App Number</th>
-              <th>Milestone Title & Scope</th>
-              <th>Tranche</th>
-              <th>Claimed Expenditure</th>
-              <th>Progress %</th>
-              <th>Audit Status</th>
-              <th>Audit Officer Remarks</th>
+              <th>Applicant & Organization</th>
+              <th>Project Title</th>
+              <th>Requested (INR)</th>
+              <th>Eligibility</th>
+              <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            ${state.utilizationReports.map(u => `
+            ${state.applications.slice(0, 5).map(a => `
               <tr>
-                <td><strong>${u.application ? u.application.applicationNumber : 'APP-2024'}</strong></td>
+                <td><strong>${a.applicationNumber}</strong></td>
                 <td>
-                  <div style="font-weight: 500;">${u.milestoneTitle}</div>
-                  <small style="color: #64748b;">${u.progressNarrative}</small>
+                  <div>${a.applicant ? a.applicant.fullName : 'Applicant'}</div>
+                  <small style="color: #64748b;">${a.organizationType} • ${a.stateOrRegion}</small>
                 </td>
-                <td>Tranche ${u.trancheNumber}</td>
-                <td><strong>${formatINR(u.amountUtilized)}</strong></td>
+                <td>${a.projectTitle}</td>
+                <td><strong>${formatINR(a.requestedAmount)}</strong></td>
+                <td>${getStatusBadge(a.eligibilityStatus)}</td>
+                <td>${getStatusBadge(a.status)}</td>
                 <td>
-                  <div style="font-weight: 700; color: #059669;">${u.utilizationPercentage}%</div>
-                </td>
-                <td>${getStatusBadge(u.verificationStatus)}</td>
-                <td style="font-size: 11px; color: #475569;">${u.verificationRemarks || 'Awaiting officer site audit.'}</td>
-                <td>
-                  ${u.verificationStatus === 'PENDING_VERIFICATION' && (state.currentUser.role === 'ROLE_PROGRAM_OFFICER' || state.currentUser.role === 'ROLE_ADMIN') ? `
-                    <button class="btn btn-success btn-sm" onclick="verifyUCReport(${u.reportId})">Verify & Pass</button>
-                  ` : `
-                    <span class="badge badge-green">Verified</span>
-                  `}
+                  <button class="btn btn-secondary btn-sm" onclick="viewApplicationDetail(${a.applicationId})">Inspect</button>
                 </td>
               </tr>
             `).join('')}
@@ -1235,81 +1833,130 @@ function renderDisbursements(host) {
   `;
 }
 
-function executeDisbursementNow(disbId) {
-  const disb = state.disbursements.find(d => d.disbursementId === disbId);
-  if (!disb) return;
+// Shared Programs View
+function renderPrograms(host) {
+  host.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Grant Programs Setup & Scheme Catalog (Module 1)</div>
+          <div class="card-desc">Configure grant schemes, budget allocations, date horizons, and automated eligibility criteria</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNewProgramModal()">+ Configure New Grant Program</button>
+      </div>
 
-  const txn = prompt('Enter PFMS Payment Gateway Transaction Reference:', `PFMS${Date.now()}`);
-  if (!txn) return;
-
-  disb.status = 'DISBURSED';
-  disb.transactionReference = txn;
-  disb.disbursementDate = new Date().toISOString().substring(0, 10);
-
-  // Update stats
-  state.stats.totalDisbursedBudget += disb.disbursementAmount;
-  state.stats.budgetUtilizationRate = (state.stats.totalDisbursedBudget / state.stats.totalAllocatedBudget) * 100;
-
-  renderContent();
-  alert(`Disbursement ${disb.disbursementReference} of ${formatINR(disb.disbursementAmount)} marked DISBURSED!\nProgram budget tally updated.`);
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Scheme Code</th>
+              <th>Grant Scheme Title & Agency</th>
+              <th>Category</th>
+              <th>Total Budget</th>
+              <th>Disbursed</th>
+              <th>Grant Range</th>
+              <th>Tenure</th>
+              <th>Status</th>
+              <th>Criteria Rules</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${state.programs.map(p => `
+              <tr>
+                <td><strong>${p.programCode}</strong></td>
+                <td>
+                  <div style="font-weight: 600; color: #0f172a;">${p.title}</div>
+                  <small style="color: #64748b;">${p.fundingAgency}</small>
+                </td>
+                <td><span class="badge badge-blue">${p.category}</span></td>
+                <td><strong>${formatINR(p.totalBudget)}</strong></td>
+                <td>${formatINR(p.disbursedBudget)}</td>
+                <td>${formatINR(p.minGrantAmount)} - ${formatINR(p.maxGrantAmount)}</td>
+                <td><small>${p.startDate} to ${p.endDate}</small></td>
+                <td>${getStatusBadge(p.status)}</td>
+                <td>
+                  <span class="badge badge-purple">${(p.criteria && p.criteria.length) || 0} Rules Configured</span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 }
 
-function verifyUCReport(repId) {
-  const rep = state.utilizationReports.find(r => r.reportId === repId);
-  if (!rep) return;
-
-  const remarks = prompt('Enter Officer Verification Audit Remarks:', 'Physical site inspection verified by district officer. Vouchers audited.');
-  if (remarks) {
-    rep.verificationStatus = 'VERIFIED_SATISFACTORY';
-    rep.verificationRemarks = remarks;
-    renderContent();
-    alert('Milestone Utilization Certificate verified satisfactory! Subsequent tranche unlocked.');
-  }
-}
-
-function openSubmitUCModal() {
+function openNewProgramModal() {
   const modal = document.getElementById('modalHost');
   modal.innerHTML = `
     <div class="modal-overlay" onclick="closeModal(event)">
       <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
-          <h3>Submit Milestone Utilization Certificate (Module 4)</h3>
+          <h3>Create & Configure Grant Program (Module 1)</h3>
           <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
         </div>
-        <form onsubmit="handleUCSubmit(event)">
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label>Select Application *</label>
-            <select id="ucAppId" class="form-select" required>
-              ${state.applications.map(a => `
-                <option value="${a.applicationId}">${a.applicationNumber} - ${a.projectTitle}</option>
-              `).join('')}
-            </select>
-          </div>
+        <form onsubmit="handleCreateProgram(event)">
           <div class="form-grid">
             <div class="form-group">
-              <label>Tranche Number *</label>
-              <input type="number" id="ucTranche" class="form-input" required value="1" min="1">
+              <label>Program Code *</label>
+              <input type="text" id="pCode" class="form-input" required value="GMS-2025-INNOV-${Math.floor(Math.random()*900)+100}">
             </div>
             <div class="form-group">
-              <label>Amount Utilized (INR) *</label>
-              <input type="number" id="ucAmt" class="form-input" required value="2400000">
+              <label>Scheme Title *</label>
+              <input type="text" id="pTitle" class="form-input" required placeholder="e.g. Clean Water Technology Acceleration Grant">
             </div>
             <div class="form-group">
-              <label>Utilization Percentage (0-100) *</label>
-              <input type="number" id="ucPct" class="form-input" required value="96" min="0" max="100">
+              <label>Sector / Category *</label>
+              <select id="pCategory" class="form-select" required>
+                <option value="Agriculture & Fisheries">Agriculture & Fisheries</option>
+                <option value="Clean Energy">Clean Energy</option>
+                <option value="Technology & Innovation">Technology & Innovation</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Women Entrepreneurship">Women Entrepreneurship</option>
+              </select>
             </div>
-          </div>
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label>Milestone Title *</label>
-            <input type="text" id="ucTitle" class="form-input" required value="Civil work and equipment installation completed.">
+            <div class="form-group">
+              <label>Funding Agency / Ministry *</label>
+              <input type="text" id="pAgency" class="form-input" required value="Department of Science & Technology">
+            </div>
+            <div class="form-group">
+              <label>Total Budget Corpus (INR) *</label>
+              <input type="number" id="pBudget" class="form-input" required value="30000000">
+            </div>
+            <div class="form-group">
+              <label>Min Grant Ceiling (INR) *</label>
+              <input type="number" id="pMinGrant" class="form-input" required value="1000000">
+            </div>
+            <div class="form-group">
+              <label>Max Grant Ceiling (INR) *</label>
+              <input type="number" id="pMaxGrant" class="form-input" required value="5000000">
+            </div>
+            <div class="form-group">
+              <label>Start Date *</label>
+              <input type="date" id="pStart" class="form-input" required value="2025-01-01">
+            </div>
+            <div class="form-group">
+              <label>End Date *</label>
+              <input type="date" id="pEnd" class="form-input" required value="2025-12-31">
+            </div>
           </div>
           <div class="form-group" style="margin-bottom: 16px;">
-            <label>Detailed Progress Narrative & Vouchers Summary *</label>
-            <textarea id="ucNarrative" class="form-textarea" required>Procured all solar pumping units and finished civil foundation work on site.</textarea>
+            <label>Program Description & Objectives</label>
+            <textarea id="pDesc" class="form-textarea" placeholder="Detailed program scope, objectives, and eligible expenditures..."></textarea>
           </div>
+
+          <div style="background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+            <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Configured Eligibility Rules (Engine Automated):</h4>
+            <ul style="font-size: 12px; color: #475569; padding-left: 20px;">
+              <li><strong>MIN_OPERATING_YEARS</strong>: Minimum 2 operational years (Mandatory)</li>
+              <li><strong>ENTITY_TYPE_ALLOWED</strong>: Startup, MSME, or Cooperative (Mandatory)</li>
+              <li><strong>GST_REGISTRATION</strong>: Valid Active GSTIN Certificate (Mandatory)</li>
+            </ul>
+          </div>
+
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Submit for Officer Verification</button>
+            <button type="submit" class="btn btn-primary">Save & Launch Scheme</button>
           </div>
         </form>
       </div>
@@ -1317,26 +1964,42 @@ function openSubmitUCModal() {
   `;
 }
 
-function handleUCSubmit(e) {
+function handleCreateProgram(e) {
   e.preventDefault();
-  const appId = parseInt(document.getElementById('ucAppId').value);
-  const app = state.applications.find(a => a.applicationId === appId);
-
-  const newUC = {
-    reportId: state.utilizationReports.length + 1,
-    application: app,
-    trancheNumber: parseInt(document.getElementById('ucTranche').value),
-    milestoneTitle: document.getElementById('ucTitle').value,
-    amountUtilized: parseFloat(document.getElementById('ucAmt').value),
-    utilizationPercentage: parseFloat(document.getElementById('ucPct').value),
-    progressNarrative: document.getElementById('ucNarrative').value,
-    verificationStatus: 'PENDING_VERIFICATION'
+  const newProg = {
+    programId: state.programs.length + 1,
+    programCode: document.getElementById('pCode').value,
+    title: document.getElementById('pTitle').value,
+    category: document.getElementById('pCategory').value,
+    fundingAgency: document.getElementById('pAgency').value,
+    totalBudget: parseFloat(document.getElementById('pBudget').value),
+    disbursedBudget: 0,
+    minGrantAmount: parseFloat(document.getElementById('pMinGrant').value),
+    maxGrantAmount: parseFloat(document.getElementById('pMaxGrant').value),
+    startDate: document.getElementById('pStart').value,
+    endDate: document.getElementById('pEnd').value,
+    status: 'ACTIVE',
+    description: document.getElementById('pDesc').value,
+    criteria: [
+      { criterionCode: 'MIN_OPERATING_YEARS', criterionName: 'Min Operating Years', criterionType: 'NUMERIC_MIN', expectedValue: '2', isMandatory: 'Y', weightage: 30 },
+      { criterionCode: 'ENTITY_TYPE_ALLOWED', criterionName: 'Entity Type Allowed', criterionType: 'IN_LIST', expectedValue: 'Startup,MSME', isMandatory: 'Y', weightage: 30 },
+      { criterionCode: 'GST_REGISTRATION', criterionName: 'Valid GSTIN', criterionType: 'BOOLEAN', expectedValue: 'TRUE', isMandatory: 'Y', weightage: 40 }
+    ]
   };
 
-  state.utilizationReports.unshift(newUC);
+  state.programs.unshift(newProg);
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Officer)`,
+    action: 'CREATE_SCHEME',
+    entity: newProg.programCode,
+    ip: '10.20.1.45',
+    details: `Created new grant program: ${newProg.title} with budget INR ${newProg.totalBudget}.`
+  });
+
   closeModal();
-  renderContent();
-  alert('Utilization Certificate submitted! Awaiting Program Officer verification.');
+  renderApp();
+  alert('Grant Program created successfully! Published to Applicant Catalog.');
 }
 
 // Inspect Application Detail
@@ -1367,11 +2030,13 @@ function viewApplicationDetail(appId) {
             <tr><th>State & District</th><td>${app.stateOrRegion}, ${app.district}</td></tr>
             <tr><th>Project Summary</th><td>${app.projectSummary}</td></tr>
             <tr><th>Eligibility Remarks</th><td style="color: #0369a1; font-weight: 500;">${app.eligibilityRemarks}</td></tr>
+            ${app.reviewScores ? `
+              <tr><th>Peer Review Score</th><td><strong style="color: #6b21a8;">${app.reviewScores.total} / 100</strong> (${app.reviewScores.recommendation})</td></tr>
+            ` : ''}
           </table>
 
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-            <button class="btn btn-primary" onclick="openScorecardModal(${app.applicationId})">Score Rubric</button>
           </div>
         </div>
       </div>
@@ -1379,6 +2044,7 @@ function viewApplicationDetail(appId) {
   `;
 }
 
+// Global Modal Helpers
 function closeModal(e) {
   if (e && e.target && !e.target.classList.contains('modal-overlay') && !e.target.classList.contains('btn-secondary')) {
     return;
