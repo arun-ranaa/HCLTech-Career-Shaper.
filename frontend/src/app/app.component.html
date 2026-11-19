@@ -1,0 +1,36 @@
+<div class="gov-topbar">
+  <div class="gov-logo-section">
+    <div class="gov-emblem">GOI</div>
+    <div class="gov-title">
+      <h1>Grants Management System (GMS - J18)</h1>
+      <p>Government of India | Public Sector Grant Programs & Disbursements</p>
+    </div>
+  </div>
+  <div class="user-role-badge">
+    <span>Logged in: <strong>{{ currentUser?.fullName }}</strong></span>
+    <span class="role-tag">{{ currentUser?.role }}</span>
+    <select class="form-select" style="padding: 2px 8px; font-size: 12px; height: 28px;" (change)="switchRole($event)">
+      <option value="officer">Program Officer (Sunita Sharma)</option>
+      <option value="applicant">Grant Applicant (Chirag Patel)</option>
+      <option value="reviewer">Reviewer (Dr. Alok Kapoor)</option>
+      <option value="admin">Admin (Rajesh Verma)</option>
+    </select>
+  </div>
+</div>
+
+<nav class="nav-bar">
+  <div class="nav-links">
+    <button class="nav-btn" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">Overview & Analytics</button>
+    <button class="nav-btn" [class.active]="activeTab === 'programs'" (click)="setTab('programs')">Grant Programs (M1)</button>
+    <button class="nav-btn" [class.active]="activeTab === 'applications'" (click)="setTab('applications')">Applications & Eligibility (M2)</button>
+    <button class="nav-btn" [class.active]="activeTab === 'reviews'" (click)="setTab('reviews')">Review & Sanction Desk (M3)</button>
+    <button class="nav-btn" [class.active]="activeTab === 'disbursements'" (click)="setTab('disbursements')">Disbursements & Reports (M4)</button>
+  </div>
+  <div>
+    <span class="badge badge-green">● SYSTEM READY</span>
+  </div>
+</nav>
+
+<main class="container">
+  <router-outlet></router-outlet>
+</main>
