@@ -29,6 +29,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody com.abes.grants.dto.DTOs.RegisterRequest request) {
+        try {
+            AuthResponse response = authService.register(request);
+            return ResponseEntity.status(201).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(new ErrorMessage(e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null) {

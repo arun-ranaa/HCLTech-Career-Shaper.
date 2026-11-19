@@ -52,6 +52,7 @@ const USERS_DB = {
 // Application State
 const state = {
   currentUser: null, // Null indicates unauthenticated (Login Screen)
+  authMode: 'login', // 'login' or 'register'
   currentTab: 'default',
   stats: null,
   programs: [],
@@ -515,12 +516,14 @@ function switchPortalTab(tab) {
 }
 
 // =============================================================================
-// AUTHENTICATION GATE (LOGIN SCREEN)
+// AUTHENTICATION GATE (LOGIN & REGISTRATION SCREEN)
 // =============================================================================
 function renderLoginScreen(root) {
+  const isRegister = state.authMode === 'register';
+
   root.innerHTML = `
     <div style="min-height: 100vh; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
-      <div style="width: 100%; max-width: 520px; background: #ffffff; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
+      <div style="width: 100%; max-width: 540px; background: #ffffff; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
         <!-- Gov Header Banner -->
         <div style="background: linear-gradient(135deg, #0b1f3a 0%, #1e3a8a 100%); color: #ffffff; padding: 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
           <div style="display: inline-block; background: #f59e0b; color: #0b1f3a; font-weight: 800; font-size: 14px; padding: 4px 10px; border-radius: 4px; margin-bottom: 8px;">GOVERNMENT OF INDIA</div>
@@ -528,54 +531,107 @@ function renderLoginScreen(root) {
           <p style="font-size: 13px; color: #bfdbfe;">Public Sector Scheme Formulation, Grant Sanction & PFMS Tracking</p>
         </div>
 
-        <!-- Login Form -->
-        <div style="padding: 28px;">
-          <form onsubmit="handleManualLogin(event)">
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label>Username / Official ID</label>
-              <input type="text" id="loginUsername" class="form-input" required placeholder="e.g. officer_sharma or applicant_patel" value="officer_sharma">
-            </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-              <label>Password</label>
-              <input type="password" id="loginPassword" class="form-input" required value="Password@123">
-            </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px; font-size: 14px;">
-              Sign In to Official Portal
-            </button>
-          </form>
+        <!-- Mode Toggle Tabs (Sign In vs Register) -->
+        <div style="display: flex; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+          <button type="button" onclick="setAuthMode('login')" style="flex: 1; padding: 12px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; background: ${!isRegister ? '#ffffff' : '#f8fafc'}; color: ${!isRegister ? '#1e3a8a' : '#64748b'}; border-bottom: ${!isRegister ? '3px solid #2563eb' : 'none'};">
+            Sign In Existing User
+          </button>
+          <button type="button" onclick="setAuthMode('register')" style="flex: 1; padding: 12px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; background: ${isRegister ? '#ffffff' : '#f8fafc'}; color: ${isRegister ? '#1e3a8a' : '#64748b'}; border-bottom: ${isRegister ? '3px solid #2563eb' : 'none'};">
+            + Register New Applicant
+          </button>
+        </div>
 
-          <div style="margin: 24px 0 16px; display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px;">
-            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
-            <span style="padding: 0 10px; font-weight: 600; text-transform: uppercase;">Or 1-Click Quick Login by Role</span>
-            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
-          </div>
+        <div style="padding: 24px 28px;">
+          ${!isRegister ? `
+            <!-- Sign In Form -->
+            <form onsubmit="handleManualLogin(event)">
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label>Username / Official ID</label>
+                <input type="text" id="loginUsername" class="form-input" required placeholder="e.g. officer_sharma or applicant_patel" value="officer_sharma">
+              </div>
+              <div class="form-group" style="margin-bottom: 18px;">
+                <label>Password</label>
+                <input type="password" id="loginPassword" class="form-input" required value="Password@123">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px; font-size: 14px;">
+                Sign In to Official Portal
+              </button>
+            </form>
 
-          <!-- Quick Persona Selector Cards -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div onclick="quickLogin('applicant_patel')" style="cursor: pointer; padding: 12px; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
-              <div style="font-weight: 700; color: #1e40af; font-size: 13px;">📝 Grant Applicant</div>
-              <div style="font-size: 11px; color: #3b82f6;">Chirag Patel (Startup)</div>
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Applies & tracks proposals</div>
-            </div>
-
-            <div onclick="quickLogin('officer_sharma')" style="cursor: pointer; padding: 12px; border: 1px solid #fed7aa; background: #fff7ed; border-radius: 8px; text-align: left; transition: all 0.15s;">
-              <div style="font-weight: 700; color: #c2410c; font-size: 13px;">🏛️ Program Officer</div>
-              <div style="font-size: 11px; color: #ea580c;">Sunita Sharma (DST)</div>
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Sets schemes & sanctions</div>
+            <div style="margin: 20px 0 14px; display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px;">
+              <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+              <span style="padding: 0 10px; font-weight: 600; text-transform: uppercase;">Or 1-Click Quick Login by Role</span>
+              <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
             </div>
 
-            <div onclick="quickLogin('reviewer_kapoor')" style="cursor: pointer; padding: 12px; border: 1px solid #ddd6fe; background: #faf5ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
-              <div style="font-weight: 700; color: #6b21a8; font-size: 13px;">🔬 Peer Reviewer</div>
-              <div style="font-size: 11px; color: #9333ea;">Dr. Alok Kapoor (IIT Delhi)</div>
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Scores proposal rubrics</div>
-            </div>
+            <!-- Quick Persona Selector Cards -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div onclick="quickLogin('applicant_patel')" style="cursor: pointer; padding: 10px; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
+                <div style="font-weight: 700; color: #1e40af; font-size: 12px;">📝 Grant Applicant</div>
+                <div style="font-size: 11px; color: #3b82f6;">Chirag Patel (Startup)</div>
+              </div>
 
-            <div onclick="quickLogin('admin')" style="cursor: pointer; padding: 12px; border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 8px; text-align: left; transition: all 0.15s;">
-              <div style="font-weight: 700; color: #15803d; font-size: 13px;">⚙️ System Admin</div>
-              <div style="font-size: 11px; color: #16a34a;">Rajesh Verma (NIC)</div>
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Audits & macro stats</div>
+              <div onclick="quickLogin('officer_sharma')" style="cursor: pointer; padding: 10px; border: 1px solid #fed7aa; background: #fff7ed; border-radius: 8px; text-align: left; transition: all 0.15s;">
+                <div style="font-weight: 700; color: #c2410c; font-size: 12px;">🏛️ Program Officer</div>
+                <div style="font-size: 11px; color: #ea580c;">Sunita Sharma (DST)</div>
+              </div>
+
+              <div onclick="quickLogin('reviewer_kapoor')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd6fe; background: #faf5ff; border-radius: 8px; text-align: left; transition: all 0.15s;">
+                <div style="font-weight: 700; color: #6b21a8; font-size: 12px;">🔬 Peer Reviewer</div>
+                <div style="font-size: 11px; color: #9333ea;">Dr. Alok Kapoor (IIT Delhi)</div>
+              </div>
+
+              <div onclick="quickLogin('admin')" style="cursor: pointer; padding: 10px; border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 8px; text-align: left; transition: all 0.15s;">
+                <div style="font-weight: 700; color: #15803d; font-size: 12px;">⚙️ System Admin</div>
+                <div style="font-size: 11px; color: #16a34a;">Rajesh Verma (NIC)</div>
+              </div>
             </div>
-          </div>
+          ` : `
+            <!-- Self-Registration Form for Applicants -->
+            <form onsubmit="handleSelfRegistration(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Full Name *</label>
+                  <input type="text" id="regFullName" class="form-input" required placeholder="e.g. Vikram Malhotra">
+                </div>
+                <div class="form-group">
+                  <label>Legal Organization / Enterprise *</label>
+                  <input type="text" id="regOrg" class="form-input" required placeholder="e.g. Malho AgriTech Innovations">
+                </div>
+                <div class="form-group">
+                  <label>Legal Entity Type *</label>
+                  <select id="regOrgType" class="form-select" required>
+                    <option value="Startup">DPIIT Recognized Startup</option>
+                    <option value="MSME">Registered MSME (Udyam)</option>
+                    <option value="NGO / Trust">Registered NGO / Section 8</option>
+                    <option value="Academic Institution">Research Lab / University</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Official Email *</label>
+                  <input type="email" id="regEmail" class="form-input" required placeholder="vikram@malhotech.in">
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="text" id="regPhone" class="form-input" placeholder="+91 98765 43210">
+                </div>
+                <div class="form-group">
+                  <label>Desired Username *</label>
+                  <input type="text" id="regUsername" class="form-input" required placeholder="vikram_malhotra">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Password *</label>
+                  <input type="password" id="regPassword" class="form-input" required value="Password@123">
+                </div>
+              </div>
+
+              <div style="margin-top: 16px;">
+                <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 10px; font-size: 14px;">
+                  Create Account & Open Applicant Portal >>
+                </button>
+              </div>
+            </form>
+          `}
         </div>
       </div>
       <div style="margin-top: 16px; font-size: 12px; color: #94a3b8; text-align: center;">
@@ -583,6 +639,68 @@ function renderLoginScreen(root) {
       </div>
     </div>
   `;
+}
+
+function setAuthMode(mode) {
+  state.authMode = mode;
+  renderApp();
+}
+
+async function handleSelfRegistration(e) {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value.trim();
+  const fullName = document.getElementById('regFullName').value.trim();
+  const org = document.getElementById('regOrg').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value;
+
+  const newUser = {
+    userId: Object.keys(USERS_DB).length + 10,
+    username: username,
+    fullName: fullName,
+    email: email,
+    phoneNumber: phone,
+    organizationName: org,
+    role: 'ROLE_APPLICANT'
+  };
+
+  // Persist locally in USERS_DB
+  USERS_DB[username] = newUser;
+
+  // Attempt backend register
+  try {
+    await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username,
+        password,
+        fullName,
+        email,
+        phoneNumber: phone,
+        organizationName: org,
+        roleName: 'ROLE_APPLICANT'
+      })
+    });
+  } catch (err) {}
+
+  // Log in immediately
+  state.currentUser = newUser;
+  localStorage.setItem('gms_session_user', JSON.stringify(newUser));
+  setDefaultTabForRole(newUser.role);
+
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${newUser.fullName} (Self-Registered)`,
+    action: 'REGISTER',
+    entity: newUser.username,
+    ip: '127.0.0.1',
+    details: `New Applicant registered: ${newUser.fullName} (${newUser.organizationName}).`
+  });
+
+  renderApp();
+  alert(`Account Created Successfully!\nWelcome to the Grants Management System, ${fullName}.\nYou are now logged into the Grant Applicant Portal.`);
 }
 
 function handleManualLogin(e) {
@@ -1671,6 +1789,7 @@ function renderAdminPortal(host) {
             <div class="card-title">System Users & Role-Based Access Governance</div>
             <div class="card-desc">Active system stakeholders, permissions, and departmental affiliations.</div>
           </div>
+          <button class="btn btn-primary" onclick="openAdminCreateUserModal()">+ Onboard New System User</button>
         </div>
 
         <div class="table-container">
@@ -1740,6 +1859,90 @@ function renderAdminPortal(host) {
       </div>
     `;
   }
+}
+
+function openAdminCreateUserModal() {
+  const modal = document.getElementById('modalHost');
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Onboard New Platform User / Official</h3>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        <form onsubmit="handleAdminCreateUser(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Role Assignment *</label>
+              <select id="admUserRole" class="form-select" required>
+                <option value="ROLE_PROGRAM_OFFICER">Program Officer (Ministry / Agency Desk)</option>
+                <option value="ROLE_REVIEWER">Technical Peer Reviewer (Evaluation Committee)</option>
+                <option value="ROLE_APPLICANT">Grant Applicant (Citizen / Enterprise / NGO)</option>
+                <option value="ROLE_ADMIN">System Administrator (NIC / Gov)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="admFullName" class="form-input" required placeholder="e.g. Dr. Ramesh Chander">
+            </div>
+            <div class="form-group">
+              <label>Department / Organization *</label>
+              <input type="text" id="admOrg" class="form-input" required placeholder="e.g. Ministry of Electronics & IT">
+            </div>
+            <div class="form-group">
+              <label>Official Email *</label>
+              <input type="email" id="admEmail" class="form-input" required placeholder="r.chander@meity.gov.in">
+            </div>
+            <div class="form-group">
+              <label>Unique Username *</label>
+              <input type="text" id="admUsername" class="form-input" required placeholder="officer_chander">
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="password" id="admPassword" class="form-input" required value="Password@123">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Onboard User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function handleAdminCreateUser(e) {
+  e.preventDefault();
+  const username = document.getElementById('admUsername').value.trim();
+  const fullName = document.getElementById('admFullName').value.trim();
+  const org = document.getElementById('admOrg').value.trim();
+  const email = document.getElementById('admEmail').value.trim();
+  const role = document.getElementById('admUserRole').value;
+
+  const newUser = {
+    userId: Object.keys(USERS_DB).length + 20,
+    username,
+    fullName,
+    email,
+    organizationName: org,
+    role
+  };
+
+  USERS_DB[username] = newUser;
+
+  state.auditLogs.unshift({
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    user: `${state.currentUser.fullName} (Admin)`,
+    action: 'CREATE_USER',
+    entity: newUser.username,
+    ip: '127.0.0.1',
+    details: `Onboarded user: ${newUser.fullName} with role ${newUser.role}.`
+  });
+
+  closeModal();
+  renderApp();
+  alert(`User @${username} (${fullName}) onboarded successfully as ${role.replace('ROLE_', '')}!`);
 }
 
 // Shared Overview Dashboard

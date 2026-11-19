@@ -59,4 +59,42 @@ public class AuthService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+
+    public AuthResponse register(com.abes.grants.dto.DTOs.RegisterRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Username '" + request.getUsername() + "' is already taken");
+        }
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email '" + request.getEmail() + "' is already registered");
+        }
+
+        String roleStr = (request.getRoleName() != null && !request.getRoleName().trim().isEmpty())
+                ? request.getRoleName() : "ROLE_APPLICANT";
+        Role role = roleRepository.findByRoleName(roleStr)
+                .orElseGet(() -> roleRepository.save(new Role(roleStr, roleStr, "Assigned user role")));
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setOrganizationName(request.getOrganizationName());
+        user.setDesignation(request.getDesignation());
+        user.setRole(role);
+        user.setStatus("ACTIVE");
+
+        User saved = userRepository.save(user);
+        String token = jwtTokenService.generateToken(saved.getUsername(), role.getRoleName());
+
+        return new AuthResponse(
+                token,
+                saved.getUserId(),
+                saved.getUsername(),
+                saved.getFullName(),
+                saved.getEmail(),
+                role.getRoleName(),
+                saved.getOrganizationName()
+        );
+    }
 }
