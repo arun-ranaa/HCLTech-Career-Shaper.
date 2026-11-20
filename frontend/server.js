@@ -1,6 +1,7 @@
 /**
- * Grants Management System - Lightweight Frontend Development Server
- * Serves the frontend assets on port 4200 with MIME type resolution and API proxy fallback.
+ * Grants Management System - Resilient Frontend Development Server
+ * Serves the frontend assets on port 4200 with MIME type resolution,
+ * robust error trapping, keep-alive heartbeat, and SPA fallback.
  */
 
 const http = require('http');
@@ -21,7 +22,24 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+// Global exception handlers to prevent unexpected exits
+process.on('uncaughtException', (err) => {
+  console.error('[GMS Server] Caught exception:', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[GMS Server] Unhandled rejection:', reason);
+});
+
 const server = http.createServer((req, res) => {
+  req.on('error', (err) => {
+    console.warn('[GMS Server] Request error:', err.message);
+  });
+
+  res.on('error', (err) => {
+    console.warn('[GMS Server] Response error:', err.message);
+  });
+
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -33,9 +51,10 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let filePath = path.join(PUBLIC_DIR, req.url === '/' ? 'index.html' : req.url);
+  let reqPath = req.url.split('?')[0];
+  let filePath = path.join(PUBLIC_DIR, reqPath === '/' ? 'index.html' : reqPath);
 
-  if (!fs.existsSync(filePath)) {
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(PUBLIC_DIR, 'index.html'); // SPA fallback
   }
 
@@ -44,19 +63,33 @@ const server = http.createServer((req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      res.writeHead(500);
-      res.end(`Server Error: ${err.code}`);
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(`Server Error: ${err.code}`);
+      }
     } else {
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
+      if (!res.headersSent) {
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
+      }
     }
   });
 });
 
-server.listen(PORT, () => {
+server.on('error', (err) => {
+  console.error('[GMS Server] Fatal Server Error:', err.message);
+});
+
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`=================================================================`);
-  console.log(`  Grants Management System (J18) - Frontend Web Server`);
+  console.log(`  Grants Management System (J18) - Resilient Frontend Server`);
   console.log(`  Running at: http://localhost:${PORT}`);
   console.log(`  Connected Backend: http://localhost:8080/api/v1`);
   console.log(`=================================================================`);
 });
+
+// Keep process active indefinitely
+if (process.stdin.isTTY) {
+  process.stdin.resume();
+}
+setInterval(() => {}, 60000); // 1-minute event loop anchor
