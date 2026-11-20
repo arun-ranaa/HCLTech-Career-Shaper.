@@ -10,6 +10,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const PORT = 4200;
 const PUBLIC_DIR = path.join(__dirname, 'src');
@@ -83,6 +84,53 @@ function saveDataStore() {
 
 // Initial load
 loadDataStore();
+
+// ---------------------------------------------------------------------------
+// ORACLE DATABASE XE LIVE BRIDGE
+// ---------------------------------------------------------------------------
+function syncToOracle(appData) {
+  try {
+    const id = 'app_' + Date.now();
+    const appNum = (appData.applicationNumber || ('APP-' + Date.now())).replace(/'/g, "''");
+    const progId = 'prog_community_2026';
+    const progName = (appData.program?.title || 'Grant Program').replace(/'/g, "''");
+    const applicantName = (appData.applicant?.fullName || 'Applicant').replace(/'/g, "''");
+    const email = (appData.applicant?.email || 'applicant@grants.gov.in').replace(/'/g, "''");
+    const orgName = (appData.applicant?.organizationName || appData.organizationType || 'Public Participant').replace(/'/g, "''");
+    const orgType = (appData.organizationType || 'Startup').replace(/'/g, "''");
+    const title = (appData.projectTitle || 'Grant Project').replace(/'/g, "''");
+    const amount = Number(appData.requestedAmount || 100000);
+    const status = (appData.status || 'SUBMITTED').replace(/'/g, "''");
+
+    const sql = `
+INSERT INTO GRANTS_ADMIN.APPLICATIONS (
+    ID, APPLICATION_NUMBER, PROGRAM_ID, PROGRAM_NAME,
+    APPLICANT_NAME, APPLICANT_EMAIL, ORGANIZATION_NAME, ORGANIZATION_TYPE,
+    PROJECT_TITLE, REQUESTED_AMOUNT, STATUS, SUBMITTED_AT
+) VALUES (
+    '${id}', '${appNum}', '${progId}', '${progName}',
+    '${applicantName}', '${email}', '${orgName}', '${orgType}',
+    '${title}', ${amount}, '${status}', TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+);
+COMMIT;
+EXIT;
+`;
+
+    const child = exec('sqlplus -S / as sysdba', (err, stdout) => {
+      if (err) {
+        console.warn('[Oracle Sync] Notice:', err.message);
+      } else {
+        console.log(`[Oracle Sync] Live synced to Oracle Database (GRANTS_ADMIN.APPLICATIONS): ${appNum}`);
+      }
+    });
+    if (child.stdin) {
+      child.stdin.write(sql);
+      child.stdin.end();
+    }
+  } catch (e) {
+    console.warn('[Oracle Sync] Bridge exception:', e.message);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // HTTP REQUEST PARSING HELPER
@@ -213,6 +261,10 @@ const server = http.createServer(async (req, res) => {
 
       saveDataStore();
       console.log(`[GMS Server] New Application created & persisted to disk: ${appData.applicationNumber}`);
+      
+      // Live sync to Oracle Database 11g/21c XE
+      syncToOracle(appData);
+
       return sendJson(res, 201, appData);
     }
 
