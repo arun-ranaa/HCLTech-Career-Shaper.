@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadData();
+  loadStateFromStorage();
   renderApp();
 });
 
@@ -85,6 +86,45 @@ function setDefaultTabForRole(role) {
   else if (role === 'ROLE_REVIEWER') state.currentTab = 'reviewer_queue';
   else if (role === 'ROLE_ADMIN') state.currentTab = 'admin_overview';
   else state.currentTab = 'login';
+}
+
+
+// =============================================================================
+// PERSISTENT STORAGE HELPERS (Local Session Synchronization Across Roles)
+// =============================================================================
+function saveStateToStorage() {
+  try {
+    const payload = {
+      applications: state.applications,
+      auditLogs: state.auditLogs,
+      disbursements: state.disbursements,
+      programs: state.programs,
+      utilizationReports: state.utilizationReports,
+      stats: state.stats
+    };
+    localStorage.setItem('gms_app_state_v3', JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Storage save failed:', e);
+  }
+}
+
+function loadStateFromStorage() {
+  try {
+    const saved = localStorage.getItem('gms_app_state_v3');
+    if (saved) {
+      const p = JSON.parse(saved);
+      if (p.applications && p.applications.length > 0) state.applications = p.applications;
+      if (p.auditLogs && p.auditLogs.length > 0) state.auditLogs = p.auditLogs;
+      if (p.disbursements && p.disbursements.length > 0) state.disbursements = p.disbursements;
+      if (p.programs && p.programs.length > 0) state.programs = p.programs;
+      if (p.utilizationReports && p.utilizationReports.length > 0) state.utilizationReports = p.utilizationReports;
+      if (p.stats) state.stats = p.stats;
+      return true;
+    }
+  } catch (e) {
+    console.warn('Storage load failed:', e);
+  }
+  return false;
 }
 
 // Data Loader (Backend with Fallback Mock)
@@ -1210,6 +1250,7 @@ function handleAssignReviewer(e, appId) {
     details: `Assigned technical appraisal to ${rev.fullName}.`
   });
 
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert(`Assigned ${app.applicationNumber} to ${rev.fullName}. Proposal is now UNDER_REVIEW.`);
@@ -1678,37 +1719,63 @@ function updateScoreTotal() {
 function handleSaveScorecard(e, appId) {
   e.preventDefault();
   const app = state.applications.find(a => a.applicationId === appId);
+  if (!app) return;
+
   const f = parseInt(document.getElementById('fScore').value) || 0;
   const i = parseInt(document.getElementById('iScore').value) || 0;
   const b = parseInt(document.getElementById('bScore').value) || 0;
   const s = parseInt(document.getElementById('sScore').value) || 0;
   const rec = document.getElementById('revRec').value;
   const comm = document.getElementById('revComments').value;
+  const total = f + i + b + s;
 
-  if (app) {
-    app.reviewScores = {
-      feasibility: f,
-      innovation: i,
-      budget: b,
-      social: s,
-      total: f + i + b + s,
-      recommendation: rec,
-      comments: comm
-    };
+  const prevStatus = app.status || 'UNDER_REVIEW';
+  // Update status according to evaluation recommendation (default approved)
+  const newStatus = (rec === 'RECOMMEND_REJECT') ? 'REJECTED' : 'APPROVED';
+
+  app.reviewScores = {
+    feasibility: f,
+    innovation: i,
+    budget: b,
+    social: s,
+    total: total,
+    recommendation: rec,
+    comments: comm,
+    reviewer: state.currentUser ? state.currentUser.fullName : 'Dr. Alok Kapoor',
+    reviewerOrg: state.currentUser ? state.currentUser.organizationName : 'IIT Delhi',
+    reviewDate: new Date().toISOString().replace('T', ' ').substring(0, 16)
+  };
+
+  // UPDATE APPLICATION RECORD STATUS TO APPROVED
+  app.status = newStatus;
+  if (newStatus === 'APPROVED' && (!app.approvedAmount || app.approvedAmount === 0)) {
+    app.approvedAmount = app.requestedAmount;
   }
 
+  // Update Macro Analytics Stats
+  if (state.stats) {
+    if (newStatus === 'APPROVED') {
+      state.stats.applicationsApproved = (state.stats.applicationsApproved || 0) + 1;
+    }
+    state.stats.applicationsUnderReview = Math.max(0, (state.stats.applicationsUnderReview || 1) - 1);
+  }
+
+  // Record definitive audit trail showing transition from UNDER_REVIEW to APPROVED
   state.auditLogs.unshift({
     timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    user: `${state.currentUser.fullName} (Reviewer)`,
-    action: 'SUBMIT_REVIEW',
+    user: `${state.currentUser ? state.currentUser.fullName : 'Reviewer'} (Evaluation Committee)`,
+    action: 'REVIEW_APPROVED',
     entity: app.applicationNumber,
     ip: '14.139.45.10',
-    details: `Technical Score: ${f+i+b+s}/100 | Recommendation: ${rec}`
+    details: `Evaluation Scorecard submitted (Score: ${total}/100, Recommendation: ${rec}). Proposal evaluated and marked APPROVED for grant sanction. Remarks: "${comm}"`
   });
+
+  // Save to persistent storage so Program Officer immediately sees the update
+  saveStateToStorage();
 
   closeModal();
   renderApp();
-  alert(`Scorecard Submitted!\nTotal Score: ${f+i+b+s}/100\nRecommendation: ${rec}`);
+  alert(`Evaluation Scorecard Submitted Successfully!\n\nTotal Score: ${total}/100 (${rec})\nApplication ${app.applicationNumber} has been updated to APPROVED.\nThe Program Officer can now issue the Sanction Order or release disbursements.`);
 }
 
 function openDecisionModal(appId) {
@@ -1770,6 +1837,7 @@ function handleDecisionSubmit(e, appId) {
     details: `Sanction decision: ${dec}. Approved Amount: INR ${amt}. Notes: ${notes}`
   });
 
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert(`Decision Executed!\n${app.applicationNumber} status updated to ${app.status}.`);
@@ -2200,6 +2268,7 @@ function handleCreateProgram(e) {
     details: `Created new grant program: ${newProg.title} with budget INR ${newProg.totalBudget}.`
   });
 
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert('Grant Program created successfully! Published to Applicant Catalog.');
@@ -2233,10 +2302,50 @@ function viewApplicationDetail(appId) {
             <tr><th>State & District</th><td>${app.stateOrRegion}, ${app.district}</td></tr>
             <tr><th>Project Summary</th><td>${app.projectSummary}</td></tr>
             <tr><th>Eligibility Remarks</th><td style="color: #0369a1; font-weight: 500;">${app.eligibilityRemarks}</td></tr>
-            ${app.reviewScores ? `
-              <tr><th>Peer Review Score</th><td><strong style="color: #6b21a8;">${app.reviewScores.total} / 100</strong> (${app.reviewScores.recommendation})</td></tr>
-            ` : ''}
           </table>
+
+          ${app.reviewScores ? `
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="font-weight: 700; color: #166534; font-size: 14px;">
+                  Peer Review Evaluation Scorecard & Assessment
+                </div>
+                <div>
+                  <span class="badge badge-green" style="font-size: 12px; font-weight: 700;">APPROVED</span>
+                  <span class="badge badge-purple" style="font-size: 12px; font-weight: 700;">Score: ${app.reviewScores.total} / 100</span>
+                </div>
+              </div>
+              <div style="font-size: 12px; color: #374151; margin-bottom: 10px;">
+                <strong>Assigned Technical Reviewer:</strong> ${app.reviewScores.reviewer || (app.assignedReviewer ? app.assignedReviewer.fullName : 'Dr. Alok Kapoor')} (${app.reviewScores.reviewerOrg || 'Evaluation Panel'}) • <em>${app.reviewScores.reviewDate || 'Recently Evaluated'}</em>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; text-align: center;">
+                <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5;">
+                  <div style="font-size: 10px; color: #64748b; font-weight: 600;">FEASIBILITY</div>
+                  <div style="font-size: 15px; font-weight: 800; color: #2563eb;">${app.reviewScores.feasibility} / 25</div>
+                </div>
+                <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5;">
+                  <div style="font-size: 10px; color: #64748b; font-weight: 600;">INNOVATION</div>
+                  <div style="font-size: 15px; font-weight: 800; color: #2563eb;">${app.reviewScores.innovation} / 25</div>
+                </div>
+                <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5;">
+                  <div style="font-size: 10px; color: #64748b; font-weight: 600;">BUDGET REALISM</div>
+                  <div style="font-size: 15px; font-weight: 800; color: #2563eb;">${app.reviewScores.budget} / 25</div>
+                </div>
+                <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #d1fae5;">
+                  <div style="font-size: 10px; color: #64748b; font-weight: 600;">SOCIAL IMPACT</div>
+                  <div style="font-size: 15px; font-weight: 800; color: #2563eb;">${app.reviewScores.social} / 25</div>
+                </div>
+              </div>
+              <div style="background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #d1fae5; font-size: 12px;">
+                <div><strong>Recommendation:</strong> <span style="color: #059669; font-weight: 700;">${app.reviewScores.recommendation}</span></div>
+                <div style="margin-top: 4px;"><strong>Reviewer Comments & Justification:</strong> ${app.reviewScores.comments}</div>
+              </div>
+            </div>
+          ` : `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: #64748b;">
+              <strong>Peer Evaluation Status:</strong> Assigned to ${app.assignedReviewer ? app.assignedReviewer.fullName : 'Technical Committee'}. Review scorecard pending submission.
+            </div>
+          `}
 
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button class="btn btn-secondary" onclick="closeModal()">Close</button>

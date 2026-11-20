@@ -81,10 +81,21 @@ public class ReviewWorkflowService {
 
         ApplicationReview saved = reviewRepository.save(review);
 
+        // Update application record status upon peer review submission
+        Application app = review.getApplication();
+        String prevStatus = app.getStatus();
+        String newStatus = "RECOMMEND_REJECT".equalsIgnoreCase(req.getRecommendation()) ? "REJECTED" : "APPROVED";
+        app.setStatus(newStatus);
+        if ("APPROVED".equals(newStatus) && app.getApprovedAmount() == null) {
+            app.setApprovedAmount(app.getRequestedAmount());
+        }
+        app.setUpdatedAt(LocalDateTime.now());
+        applicationRepository.save(app);
+
         ApprovalWorkflowLog log = new ApprovalWorkflowLog(
-                review.getApplication(), review.getReviewer(), "UNDER_REVIEW", "UNDER_REVIEW", "SUBMIT_REVIEW",
-                String.format("Technical Score: %d/100 | Recommendation: %s | Remarks: %s",
-                        saved.getTotalScore(), saved.getRecommendation(), saved.getReviewComments())
+                app, review.getReviewer(), prevStatus, newStatus, "REVIEW_APPROVED",
+                String.format("Technical Score: %d/100 | Recommendation: %s | Remarks: %s | Application marked %s",
+                        saved.getTotalScore(), saved.getRecommendation(), saved.getReviewComments(), newStatus)
         );
         workflowLogRepository.save(log);
 
