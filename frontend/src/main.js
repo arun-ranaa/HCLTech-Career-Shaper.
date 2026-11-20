@@ -7,7 +7,7 @@
  *  4. ROLE_ADMIN           -> System Administrator & Audit Console
  */
 
-const API_BASE = 'http://localhost:8080/api/v1';
+const API_BASE = '/api/v1';
 
 // Seed User Profiles for Authentication & Authorization
 const USERS_DB = {
@@ -90,7 +90,7 @@ function setDefaultTabForRole(role) {
 
 
 // =============================================================================
-// PERSISTENT STORAGE HELPERS (Local Session Synchronization Across Roles)
+// PERSISTENT STORAGE HELPERS (Local Session Synchronization Across Roles & Disk DB)
 // =============================================================================
 function saveStateToStorage() {
   try {
@@ -100,9 +100,17 @@ function saveStateToStorage() {
       disbursements: state.disbursements,
       programs: state.programs,
       utilizationReports: state.utilizationReports,
-      stats: state.stats
+      stats: state.stats,
+      users: USERS_DB
     };
     localStorage.setItem('gms_app_state_v3', JSON.stringify(payload));
+
+    // Asynchronously synchronize with server-side persistent database
+    fetch(`${API_BASE}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(e => console.warn('[Storage] Server sync note:', e.message));
   } catch (e) {
     console.warn('Storage save failed:', e);
   }
@@ -119,6 +127,9 @@ function loadStateFromStorage() {
       if (p.programs && p.programs.length > 0) state.programs = p.programs;
       if (p.utilizationReports && p.utilizationReports.length > 0) state.utilizationReports = p.utilizationReports;
       if (p.stats) state.stats = p.stats;
+      if (p.users && typeof p.users === 'object') {
+        Object.assign(USERS_DB, p.users);
+      }
       return true;
     }
   } catch (e) {
@@ -127,23 +138,27 @@ function loadStateFromStorage() {
   return false;
 }
 
-// Data Loader (Backend with Fallback Mock)
+// Data Loader (Backend with Fallback Mock & Local Persistence)
 async function loadData() {
   try {
-    const [statsRes, progsRes, appsRes, disbRes, utilRes] = await Promise.all([
-      fetch(`${API_BASE}/analytics/dashboard`).catch(() => null),
-      fetch(`${API_BASE}/programs`).catch(() => null),
-      fetch(`${API_BASE}/applications`).catch(() => null),
-      fetch(`${API_BASE}/disbursements`).catch(() => null),
-      fetch(`${API_BASE}/utilization-reports`).catch(() => null)
-    ]);
+    // 1. Fetch full persistent state from disk-backed backend
+    const stateRes = await fetch(`${API_BASE}/state`).catch(() => null);
+    if (stateRes && stateRes.ok) {
+      const d = await stateRes.json();
+      if (d.stats && Object.keys(d.stats).length > 0) state.stats = d.stats;
+      if (d.programs && d.programs.length > 0) state.programs = d.programs;
+      if (d.applications && d.applications.length > 0) state.applications = d.applications;
+      if (d.disbursements && d.disbursements.length > 0) state.disbursements = d.disbursements;
+      if (d.utilizationReports && d.utilizationReports.length > 0) state.utilizationReports = d.utilizationReports;
+      if (d.auditLogs && d.auditLogs.length > 0) state.auditLogs = d.auditLogs;
+      if (d.users && Object.keys(d.users).length > 0) Object.assign(USERS_DB, d.users);
+    }
+  } catch (e) {
+    console.warn('Backend loadData fallback:', e);
+  }
 
-    if (statsRes && statsRes.ok) state.stats = await statsRes.json();
-    if (progsRes && progsRes.ok) state.programs = await progsRes.json();
-    if (appsRes && appsRes.ok) state.applications = await appsRes.json();
-    if (disbRes && disbRes.ok) state.disbursements = await disbRes.json();
-    if (utilRes && utilRes.ok) state.utilizationReports = await utilRes.json();
-  } catch (e) {}
+  // 2. Synchronize with localStorage cache
+  loadStateFromStorage();
 
   if (!state.stats) {
     state.stats = {
@@ -739,6 +754,7 @@ async function handleSelfRegistration(e) {
     details: `New Applicant registered: ${newUser.fullName} (${newUser.organizationName}).`
   });
 
+  saveStateToStorage();
   renderApp();
   alert(`Account Created Successfully!\nWelcome to the Grants Management System, ${fullName}.\nYou are now logged into the Grant Applicant Portal.`);
 }
@@ -1042,6 +1058,10 @@ function handleApplicantSubmit(e) {
 
   state.applications.unshift(newApp);
 
+  if (state.stats) {
+    state.stats.totalApplications = (state.stats.totalApplications || 0) + 1;
+  }
+
   state.auditLogs.unshift({
     timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
     user: `${state.currentUser.fullName} (Applicant)`,
@@ -1050,6 +1070,16 @@ function handleApplicantSubmit(e) {
     ip: '127.0.0.1',
     details: `Application submitted. Eligibility Verdict: ${newApp.eligibilityStatus}.`
   });
+
+  // CRITICAL: Persist immediately to localStorage and disk database
+  saveStateToStorage();
+
+  // Asynchronously record into server backend
+  fetch(`${API_BASE}/applications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newApp)
+  }).catch(e => console.warn('[Application] Server save note:', e.message));
 
   alert(`Application Submitted Successfully!\n\nApplication Number: ${newApp.applicationNumber}\nAutomated Eligibility: ${newApp.eligibilityStatus}\nAudit Notes: ${newApp.eligibilityRemarks}`);
   switchPortalTab('applicant_my_apps');
@@ -1442,6 +1472,7 @@ function handleScheduleDisbSubmit(e) {
   };
 
   state.disbursements.unshift(newDisb);
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert(`Disbursement voucher ${newDisb.disbursementReference} scheduled successfully!`);
@@ -1470,6 +1501,7 @@ function executeDisbursementNow(disbId) {
     details: `Executed PFMS tranche payment of INR ${disb.disbursementAmount}. Txn Ref: ${txn}`
   });
 
+  saveStateToStorage();
   renderApp();
   alert(`Disbursement ${disb.disbursementReference} executed via PFMS!\nAmount: ${formatINR(disb.disbursementAmount)}\nProgram Budget Tally Updated.`);
 }
@@ -1482,6 +1514,7 @@ function verifyUCReport(repId) {
   if (remarks) {
     rep.verificationStatus = 'VERIFIED_SATISFACTORY';
     rep.verificationRemarks = remarks;
+    saveStateToStorage();
     renderApp();
     alert('Milestone Utilization Certificate verified satisfactory! Subsequent tranche unlocked.');
   }
@@ -1554,6 +1587,7 @@ function handleUCSubmit(e) {
   };
 
   state.utilizationReports.unshift(newUC);
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert('Utilization Certificate submitted! Awaiting Program Officer verification.');
@@ -2008,6 +2042,7 @@ function handleAdminCreateUser(e) {
     details: `Onboarded user: ${newUser.fullName} with role ${newUser.role}.`
   });
 
+  saveStateToStorage();
   closeModal();
   renderApp();
   alert(`User @${username} (${fullName}) onboarded successfully as ${role.replace('ROLE_', '')}!`);

@@ -1,6 +1,6 @@
 @echo off
 echo =====================================================================
-echo  Starting Grants Management System - Spring Boot Backend (Port 8080)
+echo  Starting Grants Management System - Spring Boot Backend (Port 8082)
 echo =====================================================================
 cd backend
 if exist mvnw.cmd (

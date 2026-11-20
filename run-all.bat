@@ -10,8 +10,8 @@ start "GMS Frontend (Angular / Web)" cmd /k "run-frontend.bat"
 
 echo.
 echo Both servers are launching:
-echo  - Backend API: http://localhost:8080/api/v1
-echo  - H2 Database Console: http://localhost:8080/h2-console
+echo  - Backend API: http://localhost:8082/api/v1
+echo  - H2 Database Console: http://localhost:8082/h2-console
 echo  - Frontend Portal: http://localhost:4200
 echo.
 pause

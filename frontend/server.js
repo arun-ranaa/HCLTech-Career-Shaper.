@@ -1,7 +1,10 @@
 /**
- * Grants Management System - Resilient Frontend Development Server
- * Serves the frontend assets on port 4200 with MIME type resolution,
- * robust error trapping, keep-alive heartbeat, and SPA fallback.
+ * Grants Management System (J18) - Resilient Full-Stack Server
+ * Features:
+ * 1. Persistent Disk Database (/api/v1/* backed by database/gms_datastore.json)
+ * 2. Static Web Asset Serving on port 4200 (HTML, CSS, JS, Images, SPA fallback)
+ * 3. Automatic Data Synchronization across sessions & restarts
+ * 4. Error trapping and keep-alive heartbeats to prevent unexpected exits
  */
 
 const http = require('http');
@@ -10,7 +13,10 @@ const path = require('path');
 
 const PORT = 4200;
 const PUBLIC_DIR = path.join(__dirname, 'src');
+const DATA_DIR = path.join(__dirname, '..', 'database');
+const DATA_FILE = path.join(DATA_DIR, 'gms_datastore.json');
 
+// MIME Type Map
 const MIME_TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -22,7 +28,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-// Global exception handlers to prevent unexpected exits
+// Global exception handlers to prevent server crashes
 process.on('uncaughtException', (err) => {
   console.error('[GMS Server] Caught exception:', err.message);
 });
@@ -31,18 +37,91 @@ process.on('unhandledRejection', (reason) => {
   console.error('[GMS Server] Unhandled rejection:', reason);
 });
 
-const server = http.createServer((req, res) => {
-  req.on('error', (err) => {
-    console.warn('[GMS Server] Request error:', err.message);
-  });
+// ---------------------------------------------------------------------------
+// PERSISTENT DATASTORE MANAGEMENT
+// ---------------------------------------------------------------------------
+let dataStore = {
+  users: {},
+  programs: [],
+  applications: [],
+  disbursements: [],
+  utilizationReports: [],
+  auditLogs: [],
+  stats: {}
+};
 
-  res.on('error', (err) => {
-    console.warn('[GMS Server] Response error:', err.message);
+function loadDataStore() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      dataStore = JSON.parse(raw);
+      console.log(`[GMS Server] Persistent store loaded successfully: ${dataStore.applications?.length || 0} applications.`);
+    } else {
+      saveDataStore();
+      console.log('[GMS Server] Initialized empty persistent store at', DATA_FILE);
+    }
+  } catch (err) {
+    console.error('[GMS Server] Failed to load persistent data store:', err.message);
+  }
+}
+
+function saveDataStore() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(dataStore, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('[GMS Server] Failed to save persistent data store:', err.message);
+    return false;
+  }
+}
+
+// Initial load
+loadDataStore();
+
+// ---------------------------------------------------------------------------
+// HTTP REQUEST PARSING HELPER
+// ---------------------------------------------------------------------------
+function getRequestBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        resolve({});
+      }
+    });
   });
+}
+
+function sendJson(res, statusCode, data) {
+  if (res.headersSent) return;
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': '*'
+  });
+  res.end(JSON.stringify(data));
+}
+
+// ---------------------------------------------------------------------------
+// HTTP SERVER IMPLEMENTATION
+// ---------------------------------------------------------------------------
+const server = http.createServer(async (req, res) => {
+  req.on('error', (err) => console.warn('[GMS Server] Request error:', err.message));
+  res.on('error', (err) => console.warn('[GMS Server] Response error:', err.message));
 
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
   if (req.method === 'OPTIONS') {
@@ -51,8 +130,173 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let reqPath = req.url.split('?')[0];
-  let filePath = path.join(PUBLIC_DIR, reqPath === '/' ? 'index.html' : reqPath);
+  const parsedUrl = req.url.split('?')[0];
+  const method = req.method.toUpperCase();
+
+  // -------------------------------------------------------------------------
+  // REST API ROUTER (/api/v1/*) - PERSISTENT IN database/gms_datastore.json
+  // -------------------------------------------------------------------------
+  if (parsedUrl.startsWith('/api/v1')) {
+    const apiPath = parsedUrl.replace('/api/v1', '');
+
+    // 1. Full State Snapshot & Client Sync
+    if (apiPath === '/state' && method === 'GET') {
+      return sendJson(res, 200, dataStore);
+    }
+
+    if (apiPath === '/sync' && method === 'POST') {
+      const payload = await getRequestBody(req);
+      if (payload.applications && Array.isArray(payload.applications)) {
+        dataStore.applications = payload.applications;
+      }
+      if (payload.auditLogs && Array.isArray(payload.auditLogs)) {
+        dataStore.auditLogs = payload.auditLogs;
+      }
+      if (payload.disbursements && Array.isArray(payload.disbursements)) {
+        dataStore.disbursements = payload.disbursements;
+      }
+      if (payload.programs && Array.isArray(payload.programs)) {
+        dataStore.programs = payload.programs;
+      }
+      if (payload.utilizationReports && Array.isArray(payload.utilizationReports)) {
+        dataStore.utilizationReports = payload.utilizationReports;
+      }
+      if (payload.stats && typeof payload.stats === 'object') {
+        dataStore.stats = payload.stats;
+      }
+      if (payload.users && typeof payload.users === 'object') {
+        dataStore.users = { ...dataStore.users, ...payload.users };
+      }
+      saveDataStore();
+      console.log(`[GMS Server] State synchronized to disk: ${dataStore.applications.length} applications stored.`);
+      return sendJson(res, 200, { success: true, applicationsCount: dataStore.applications.length });
+    }
+
+    // 2. Applications API
+    if (apiPath === '/applications' && method === 'GET') {
+      return sendJson(res, 200, dataStore.applications || []);
+    }
+
+    if (apiPath === '/applications' && method === 'POST') {
+      const appData = await getRequestBody(req);
+      if (!appData.applicationId) {
+        appData.applicationId = (dataStore.applications?.length || 0) + 1;
+      }
+      if (!appData.applicationNumber) {
+        appData.applicationNumber = `APP-2025-${Math.floor(Math.random() * 90000) + 10000}`;
+      }
+      if (!appData.submissionDate) {
+        appData.submissionDate = new Date().toISOString().substring(0, 10);
+      }
+      if (!appData.status) {
+        appData.status = 'SUBMITTED';
+      }
+
+      dataStore.applications = dataStore.applications || [];
+      dataStore.applications.unshift(appData);
+
+      // Record audit log
+      dataStore.auditLogs = dataStore.auditLogs || [];
+      dataStore.auditLogs.unshift({
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        user: `${appData.applicant?.fullName || 'Applicant'} (Applicant)`,
+        action: 'SUBMIT',
+        entity: appData.applicationNumber,
+        ip: '127.0.0.1',
+        details: `Application submitted. Eligibility Verdict: ${appData.eligibilityStatus || 'AUTO_ELIGIBLE'}.`
+      });
+
+      // Update statistics
+      if (dataStore.stats) {
+        dataStore.stats.totalApplications = (dataStore.stats.totalApplications || 0) + 1;
+      }
+
+      saveDataStore();
+      console.log(`[GMS Server] New Application created & persisted to disk: ${appData.applicationNumber}`);
+      return sendJson(res, 201, appData);
+    }
+
+    // 3. Grant Programs API
+    if (apiPath === '/programs' && method === 'GET') {
+      return sendJson(res, 200, dataStore.programs || []);
+    }
+
+    if (apiPath === '/programs' && method === 'POST') {
+      const progData = await getRequestBody(req);
+      if (!progData.programId) progData.programId = (dataStore.programs?.length || 0) + 1;
+      dataStore.programs = dataStore.programs || [];
+      dataStore.programs.unshift(progData);
+      saveDataStore();
+      return sendJson(res, 201, progData);
+    }
+
+    // 4. Disbursements API
+    if (apiPath === '/disbursements' && method === 'GET') {
+      return sendJson(res, 200, dataStore.disbursements || []);
+    }
+
+    if (apiPath === '/disbursements' && method === 'POST') {
+      const disbData = await getRequestBody(req);
+      if (!disbData.disbursementId) disbData.disbursementId = (dataStore.disbursements?.length || 0) + 1;
+      dataStore.disbursements = dataStore.disbursements || [];
+      dataStore.disbursements.unshift(disbData);
+      saveDataStore();
+      return sendJson(res, 201, disbData);
+    }
+
+    // 5. Utilization Reports API
+    if (apiPath === '/utilization-reports' && method === 'GET') {
+      return sendJson(res, 200, dataStore.utilizationReports || []);
+    }
+
+    if (apiPath === '/utilization-reports' && method === 'POST') {
+      const repData = await getRequestBody(req);
+      if (!repData.reportId) repData.reportId = (dataStore.utilizationReports?.length || 0) + 1;
+      dataStore.utilizationReports = dataStore.utilizationReports || [];
+      dataStore.utilizationReports.unshift(repData);
+      saveDataStore();
+      return sendJson(res, 201, repData);
+    }
+
+    // 6. Analytics Dashboard API
+    if (apiPath === '/analytics/dashboard' && method === 'GET') {
+      return sendJson(res, 200, dataStore.stats || {});
+    }
+
+    // 7. Audit Logs API
+    if (apiPath === '/audit-logs' && method === 'GET') {
+      return sendJson(res, 200, dataStore.auditLogs || []);
+    }
+
+    // 8. Users & Authentication API
+    if (apiPath === '/users' && method === 'GET') {
+      return sendJson(res, 200, dataStore.users || {});
+    }
+
+    if (apiPath === '/auth/register' && method === 'POST') {
+      const user = await getRequestBody(req);
+      dataStore.users = dataStore.users || {};
+      dataStore.users[user.username] = {
+        userId: Object.keys(dataStore.users).length + 10,
+        username: user.username,
+        fullName: user.fullName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        organizationName: user.organizationName,
+        role: user.roleName || user.role || 'ROLE_APPLICANT'
+      };
+      saveDataStore();
+      return sendJson(res, 201, { message: 'User registered successfully', user: dataStore.users[user.username] });
+    }
+
+    // Fallback for unmatched API routes
+    return sendJson(res, 404, { error: 'API route not found', path: apiPath });
+  }
+
+  // -------------------------------------------------------------------------
+  // STATIC ASSET SERVING WITH SPA FALLBACK
+  // -------------------------------------------------------------------------
+  let filePath = path.join(PUBLIC_DIR, parsedUrl === '/' ? 'index.html' : parsedUrl);
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(PUBLIC_DIR, 'index.html'); // SPA fallback
@@ -82,9 +326,9 @@ server.on('error', (err) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`=================================================================`);
-  console.log(`  Grants Management System (J18) - Resilient Frontend Server`);
+  console.log(`  Grants Management System (J18) - Resilient Full-Stack Server`);
   console.log(`  Running at: http://localhost:${PORT}`);
-  console.log(`  Connected Backend: http://localhost:8080/api/v1`);
+  console.log(`  Persistent DB: database/gms_datastore.json`);
   console.log(`=================================================================`);
 });
 

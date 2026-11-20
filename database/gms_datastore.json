@@ -1,0 +1,1049 @@
+{
+  "users": {
+    "applicant_patel": {
+      "userId": 7,
+      "username": "applicant_patel",
+      "fullName": "Chirag Patel",
+      "role": "ROLE_APPLICANT",
+      "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+      "email": "chirag@krishiai-tech.com",
+      "location": "Surat, Gujarat"
+    },
+    "officer_sharma": {
+      "userId": 2,
+      "username": "officer_sharma",
+      "fullName": "Sunita Sharma",
+      "role": "ROLE_PROGRAM_OFFICER",
+      "organizationName": "Department of Science and Technology (DST)",
+      "email": "sunita.sharma@dst.gov.in",
+      "location": "New Delhi"
+    },
+    "reviewer_kapoor": {
+      "userId": 4,
+      "username": "reviewer_kapoor",
+      "fullName": "Dr. Alok Kapoor",
+      "role": "ROLE_REVIEWER",
+      "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+      "email": "a.kapoor@iitd.ac.in",
+      "location": "New Delhi"
+    },
+    "admin": {
+      "userId": 1,
+      "username": "admin",
+      "fullName": "Devansh Srivastava (System Admin)",
+      "role": "ROLE_ADMIN",
+      "organizationName": "Ministry PMU & ABES EC Tech Cell",
+      "email": "admin@grants.gov.in",
+      "location": "Ghaziabad, UP"
+    }
+  },
+  "programs": [
+    {
+      "programId": 1,
+      "programCode": "GMS-2024-AGRI-01",
+      "title": "PM Matsya Sampada Aquaculture Tech Grant",
+      "category": "Agriculture & Fisheries",
+      "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+      "totalBudget": 50000000,
+      "disbursedBudget": 14500000,
+      "minGrantAmount": 1000000,
+      "maxGrantAmount": 7500000,
+      "startDate": "2024-04-01",
+      "endDate": "2025-03-31",
+      "status": "ACTIVE",
+      "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+      "criteria": [
+        {
+          "criterionCode": "MIN_OPERATING_YEARS",
+          "criterionName": "Min Operating Years",
+          "criterionType": "NUMERIC_MIN",
+          "expectedValue": "2",
+          "isMandatory": "Y",
+          "weightage": 30
+        },
+        {
+          "criterionCode": "ENTITY_TYPE_ALLOWED",
+          "criterionName": "Entity Type Allowed",
+          "criterionType": "IN_LIST",
+          "expectedValue": "Startup,MSME,LLP",
+          "isMandatory": "Y",
+          "weightage": 35
+        },
+        {
+          "criterionCode": "GST_REGISTRATION",
+          "criterionName": "Valid GSTIN",
+          "criterionType": "BOOLEAN",
+          "expectedValue": "TRUE",
+          "isMandatory": "Y",
+          "weightage": 35
+        }
+      ]
+    },
+    {
+      "programId": 2,
+      "programCode": "GMS-2024-CLEAN-02",
+      "title": "National Clean Energy Solar Innovation Grant",
+      "category": "Clean Energy",
+      "fundingAgency": "Ministry of New and Renewable Energy",
+      "totalBudget": 120000000,
+      "disbursedBudget": 42000000,
+      "minGrantAmount": 2500000,
+      "maxGrantAmount": 20000000,
+      "startDate": "2024-05-15",
+      "endDate": "2025-11-30",
+      "status": "ACTIVE",
+      "eligibilitySummary": "Indian Private Limited companies or Academic Labs. Min turnover INR 50 Lakhs.",
+      "criteria": [
+        {
+          "criterionCode": "MIN_OPERATING_YEARS",
+          "criterionName": "Min Operating Years",
+          "criterionType": "NUMERIC_MIN",
+          "expectedValue": "3",
+          "isMandatory": "Y",
+          "weightage": 30
+        },
+        {
+          "criterionCode": "MIN_TURNOVER_LAKHS",
+          "criterionName": "Min Annual Turnover (Lakhs)",
+          "criterionType": "NUMERIC_MIN",
+          "expectedValue": "50",
+          "isMandatory": "Y",
+          "weightage": 40
+        }
+      ]
+    },
+    {
+      "programId": 3,
+      "programCode": "GMS-2024-TECH-03",
+      "title": "Digital India AI & Cybersecurity Challenge Grant",
+      "category": "Technology & Innovation",
+      "fundingAgency": "Ministry of Electronics and Information Technology (MeitY)",
+      "totalBudget": 85000000,
+      "disbursedBudget": 28000000,
+      "minGrantAmount": 5000000,
+      "maxGrantAmount": 15000000,
+      "startDate": "2024-06-01",
+      "endDate": "2025-12-31",
+      "status": "ACTIVE",
+      "eligibilitySummary": "DPIIT recognized Startups with Indian resident majority shareholding and functional prototype.",
+      "criteria": [
+        {
+          "criterionCode": "MIN_OPERATING_YEARS",
+          "criterionName": "Min Operating Years",
+          "criterionType": "NUMERIC_MIN",
+          "expectedValue": "1",
+          "isMandatory": "Y",
+          "weightage": 40
+        },
+        {
+          "criterionCode": "ENTITY_TYPE_ALLOWED",
+          "criterionName": "Permissible Entities",
+          "criterionType": "IN_LIST",
+          "expectedValue": "Startup,MSME",
+          "isMandatory": "Y",
+          "weightage": 60
+        }
+      ]
+    },
+    {
+      "programId": 4,
+      "programCode": "GMS-2024-WOMEN-05",
+      "title": "Rural Women Artisan Digital Livelihood Grant",
+      "category": "Women Entrepreneurship",
+      "fundingAgency": "Ministry of Rural Development",
+      "totalBudget": 25000000,
+      "disbursedBudget": 6000000,
+      "minGrantAmount": 500000,
+      "maxGrantAmount": 3000000,
+      "startDate": "2024-02-15",
+      "endDate": "2025-06-30",
+      "status": "ACTIVE",
+      "eligibilitySummary": "Cooperative societies or registered NGOs with at least 70% women members.",
+      "criteria": [
+        {
+          "criterionCode": "MIN_OPERATING_YEARS",
+          "criterionName": "Min Operating Years",
+          "criterionType": "NUMERIC_MIN",
+          "expectedValue": "2",
+          "isMandatory": "Y",
+          "weightage": 50
+        }
+      ]
+    }
+  ],
+  "applications": [
+    {
+      "applicationId": 5,
+      "applicationNumber": "APP-2025-88571",
+      "submissionDate": "2026-11-20",
+      "status": "SUBMITTED"
+    },
+    {
+      "applicationId": 1,
+      "applicationNumber": "APP-2024-AGRI-00101",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "Smart IoT AquaAerator for Freshwater Prawns",
+      "projectSummary": "Deployment of solar-assisted automatic oxygenators with pH and turbidity monitoring in coastal aquaculture ponds.",
+      "requestedAmount": 4500000,
+      "approvedAmount": 4200000,
+      "projectDurationMonths": 18,
+      "stateOrRegion": "Gujarat",
+      "district": "Surat",
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "All mandatory criteria satisfied: 3 yrs active, valid GST.",
+      "status": "APPROVED",
+      "submissionDate": "2024-04-12 10:30",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 23,
+        "innovation": 21,
+        "budget": 22,
+        "social": 24,
+        "total": 90,
+        "recommendation": "RECOMMEND_APPROVE"
+      }
+    },
+    {
+      "applicationId": 2,
+      "applicationNumber": "APP-2024-CLEAN-00201",
+      "program": {
+        "programId": 2,
+        "programCode": "GMS-2024-CLEAN-02",
+        "title": "National Clean Energy Solar Innovation Grant",
+        "category": "Clean Energy",
+        "fundingAgency": "Ministry of New and Renewable Energy",
+        "totalBudget": 120000000,
+        "disbursedBudget": 42000000,
+        "minGrantAmount": 2500000,
+        "maxGrantAmount": 20000000,
+        "startDate": "2024-05-15",
+        "endDate": "2025-11-30",
+        "status": "ACTIVE",
+        "eligibilitySummary": "Indian Private Limited companies or Academic Labs. Min turnover INR 50 Lakhs.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "3",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "MIN_TURNOVER_LAKHS",
+            "criterionName": "Min Annual Turnover (Lakhs)",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "50",
+            "isMandatory": "Y",
+            "weightage": 40
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 8,
+        "fullName": "Kavitha Reddy",
+        "organizationName": "Surya Shakti Solar NGO",
+        "role": "ROLE_APPLICANT"
+      },
+      "projectTitle": "Community Solar Microgrid with Flow Batteries",
+      "projectSummary": "Deploying 50kW agro-photovoltaic micro-grids powering irrigation pumps and rural micro-cold storages.",
+      "requestedAmount": 15000000,
+      "approvedAmount": 14000000,
+      "projectDurationMonths": 24,
+      "stateOrRegion": "Telangana",
+      "district": "Warangal",
+      "organizationType": "NGO / Trust",
+      "organizationPan": "AAATG9988D",
+      "organizationGstin": "36AAATG9988D1ZC",
+      "annualTurnover": 6500000,
+      "yearsInOperation": 5,
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "Turnover and experience criteria verified.",
+      "status": "APPROVED",
+      "submissionDate": "2024-05-25 11:00",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 24,
+        "innovation": 22,
+        "budget": 23,
+        "social": 25,
+        "total": 94,
+        "recommendation": "RECOMMEND_APPROVE"
+      }
+    },
+    {
+      "applicationId": 3,
+      "applicationNumber": "APP-2024-TECH-00301",
+      "program": {
+        "programId": 3,
+        "programCode": "GMS-2024-TECH-03",
+        "title": "Digital India AI & Cybersecurity Challenge Grant",
+        "category": "Technology & Innovation",
+        "fundingAgency": "Ministry of Electronics and Information Technology (MeitY)",
+        "totalBudget": 85000000,
+        "disbursedBudget": 28000000,
+        "minGrantAmount": 5000000,
+        "maxGrantAmount": 15000000,
+        "startDate": "2024-06-01",
+        "endDate": "2025-12-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "DPIIT recognized Startups with Indian resident majority shareholding and functional prototype.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "1",
+            "isMandatory": "Y",
+            "weightage": 40
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Permissible Entities",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME",
+            "isMandatory": "Y",
+            "weightage": 60
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "BhashaAI: Multilingual Speech-to-Speech Engine for Rural Health",
+      "projectSummary": "Speech recognition and translation for 10 Indic languages enabling ASHA health workers to capture patient notes.",
+      "requestedAmount": 12000000,
+      "approvedAmount": 11000000,
+      "projectDurationMonths": 18,
+      "stateOrRegion": "Karnataka",
+      "district": "Bengaluru Urban",
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "29AAACK1234F1Z1",
+      "annualTurnover": 14000000,
+      "yearsInOperation": 3,
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "Full eligibility confirmed.",
+      "status": "DISBURSED",
+      "submissionDate": "2024-06-15 09:20",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 25,
+        "innovation": 25,
+        "budget": 22,
+        "social": 24,
+        "total": 96,
+        "recommendation": "RECOMMEND_APPROVE"
+      }
+    },
+    {
+      "applicationId": 4,
+      "applicationNumber": "APP-2024-AGRI-00102",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 9,
+        "fullName": "Harpreet Singh",
+        "organizationName": "Green Harvest Hydroponics LLP",
+        "role": "ROLE_APPLICANT"
+      },
+      "projectTitle": "Cold-Water Trout Recirculatory Aquaculture System (RAS)",
+      "projectSummary": "Indoor recirculatory tank systems for high-altitude trout cultivation in Mandi district.",
+      "requestedAmount": 6000000,
+      "approvedAmount": null,
+      "projectDurationMonths": 24,
+      "stateOrRegion": "Himachal Pradesh",
+      "district": "Mandi",
+      "organizationType": "MSME",
+      "organizationPan": "AABCG5543K",
+      "organizationGstin": "02AABCG5543K1Z2",
+      "annualTurnover": 8500000,
+      "yearsInOperation": 4,
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "Meets operational age, registered MSME.",
+      "status": "UNDER_REVIEW",
+      "submissionDate": "2024-04-20 14:15",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": null
+    }
+  ],
+  "disbursements": [
+    {
+      "disbursementId": 1,
+      "application": {
+        "applicationId": 1,
+        "applicationNumber": "APP-2024-AGRI-00101",
+        "program": {
+          "programId": 1,
+          "programCode": "GMS-2024-AGRI-01",
+          "title": "PM Matsya Sampada Aquaculture Tech Grant",
+          "category": "Agriculture & Fisheries",
+          "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+          "totalBudget": 50000000,
+          "disbursedBudget": 14500000,
+          "minGrantAmount": 1000000,
+          "maxGrantAmount": 7500000,
+          "startDate": "2024-04-01",
+          "endDate": "2025-03-31",
+          "status": "ACTIVE",
+          "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+          "criteria": [
+            {
+              "criterionCode": "MIN_OPERATING_YEARS",
+              "criterionName": "Min Operating Years",
+              "criterionType": "NUMERIC_MIN",
+              "expectedValue": "2",
+              "isMandatory": "Y",
+              "weightage": 30
+            },
+            {
+              "criterionCode": "ENTITY_TYPE_ALLOWED",
+              "criterionName": "Entity Type Allowed",
+              "criterionType": "IN_LIST",
+              "expectedValue": "Startup,MSME,LLP",
+              "isMandatory": "Y",
+              "weightage": 35
+            },
+            {
+              "criterionCode": "GST_REGISTRATION",
+              "criterionName": "Valid GSTIN",
+              "criterionType": "BOOLEAN",
+              "expectedValue": "TRUE",
+              "isMandatory": "Y",
+              "weightage": 35
+            }
+          ]
+        },
+        "applicant": {
+          "userId": 7,
+          "username": "applicant_patel",
+          "fullName": "Chirag Patel",
+          "role": "ROLE_APPLICANT",
+          "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+          "email": "chirag@krishiai-tech.com",
+          "location": "Surat, Gujarat"
+        },
+        "projectTitle": "Smart IoT AquaAerator for Freshwater Prawns",
+        "projectSummary": "Deployment of solar-assisted automatic oxygenators with pH and turbidity monitoring in coastal aquaculture ponds.",
+        "requestedAmount": 4500000,
+        "approvedAmount": 4200000,
+        "projectDurationMonths": 18,
+        "stateOrRegion": "Gujarat",
+        "district": "Surat",
+        "organizationType": "Startup",
+        "organizationPan": "AAACK1234F",
+        "organizationGstin": "24AAACK1234F1Z8",
+        "annualTurnover": 12000000,
+        "yearsInOperation": 3,
+        "eligibilityStatus": "AUTO_ELIGIBLE",
+        "eligibilityRemarks": "All mandatory criteria satisfied: 3 yrs active, valid GST.",
+        "status": "APPROVED",
+        "submissionDate": "2024-04-12 10:30",
+        "assignedReviewer": {
+          "userId": 4,
+          "username": "reviewer_kapoor",
+          "fullName": "Dr. Alok Kapoor",
+          "role": "ROLE_REVIEWER",
+          "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+          "email": "a.kapoor@iitd.ac.in",
+          "location": "New Delhi"
+        },
+        "reviewScores": {
+          "feasibility": 23,
+          "innovation": 21,
+          "budget": 22,
+          "social": 24,
+          "total": 90,
+          "recommendation": "RECOMMEND_APPROVE"
+        }
+      },
+      "trancheNumber": 1,
+      "disbursementReference": "PFMS-TR-2024-00101",
+      "disbursementAmount": 2500000,
+      "paymentMethod": "PFMS_NEFT",
+      "bankName": "State Bank of India",
+      "accountNumberMasked": "XXXXXX1234",
+      "ifscCode": "SBIN0001234",
+      "transactionReference": "PFMS20240505129844",
+      "scheduledDate": "2024-05-05",
+      "disbursementDate": "2024-05-05",
+      "status": "DISBURSED",
+      "remarks": "Tranche 1 released upon MoU execution."
+    },
+    {
+      "disbursementId": 2,
+      "application": {
+        "applicationId": 1,
+        "applicationNumber": "APP-2024-AGRI-00101",
+        "program": {
+          "programId": 1,
+          "programCode": "GMS-2024-AGRI-01",
+          "title": "PM Matsya Sampada Aquaculture Tech Grant",
+          "category": "Agriculture & Fisheries",
+          "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+          "totalBudget": 50000000,
+          "disbursedBudget": 14500000,
+          "minGrantAmount": 1000000,
+          "maxGrantAmount": 7500000,
+          "startDate": "2024-04-01",
+          "endDate": "2025-03-31",
+          "status": "ACTIVE",
+          "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+          "criteria": [
+            {
+              "criterionCode": "MIN_OPERATING_YEARS",
+              "criterionName": "Min Operating Years",
+              "criterionType": "NUMERIC_MIN",
+              "expectedValue": "2",
+              "isMandatory": "Y",
+              "weightage": 30
+            },
+            {
+              "criterionCode": "ENTITY_TYPE_ALLOWED",
+              "criterionName": "Entity Type Allowed",
+              "criterionType": "IN_LIST",
+              "expectedValue": "Startup,MSME,LLP",
+              "isMandatory": "Y",
+              "weightage": 35
+            },
+            {
+              "criterionCode": "GST_REGISTRATION",
+              "criterionName": "Valid GSTIN",
+              "criterionType": "BOOLEAN",
+              "expectedValue": "TRUE",
+              "isMandatory": "Y",
+              "weightage": 35
+            }
+          ]
+        },
+        "applicant": {
+          "userId": 7,
+          "username": "applicant_patel",
+          "fullName": "Chirag Patel",
+          "role": "ROLE_APPLICANT",
+          "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+          "email": "chirag@krishiai-tech.com",
+          "location": "Surat, Gujarat"
+        },
+        "projectTitle": "Smart IoT AquaAerator for Freshwater Prawns",
+        "projectSummary": "Deployment of solar-assisted automatic oxygenators with pH and turbidity monitoring in coastal aquaculture ponds.",
+        "requestedAmount": 4500000,
+        "approvedAmount": 4200000,
+        "projectDurationMonths": 18,
+        "stateOrRegion": "Gujarat",
+        "district": "Surat",
+        "organizationType": "Startup",
+        "organizationPan": "AAACK1234F",
+        "organizationGstin": "24AAACK1234F1Z8",
+        "annualTurnover": 12000000,
+        "yearsInOperation": 3,
+        "eligibilityStatus": "AUTO_ELIGIBLE",
+        "eligibilityRemarks": "All mandatory criteria satisfied: 3 yrs active, valid GST.",
+        "status": "APPROVED",
+        "submissionDate": "2024-04-12 10:30",
+        "assignedReviewer": {
+          "userId": 4,
+          "username": "reviewer_kapoor",
+          "fullName": "Dr. Alok Kapoor",
+          "role": "ROLE_REVIEWER",
+          "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+          "email": "a.kapoor@iitd.ac.in",
+          "location": "New Delhi"
+        },
+        "reviewScores": {
+          "feasibility": 23,
+          "innovation": 21,
+          "budget": 22,
+          "social": 24,
+          "total": 90,
+          "recommendation": "RECOMMEND_APPROVE"
+        }
+      },
+      "trancheNumber": 2,
+      "disbursementReference": "PFMS-TR-2024-00102",
+      "disbursementAmount": 1700000,
+      "paymentMethod": "PFMS_NEFT",
+      "bankName": "State Bank of India",
+      "accountNumberMasked": "XXXXXX1234",
+      "ifscCode": "SBIN0001234",
+      "scheduledDate": "2024-11-15",
+      "status": "SCHEDULED",
+      "remarks": "Tranche 2 scheduled upon UC verification."
+    },
+    {
+      "disbursementId": 3,
+      "application": {
+        "applicationId": 3,
+        "applicationNumber": "APP-2024-TECH-00301",
+        "program": {
+          "programId": 3,
+          "programCode": "GMS-2024-TECH-03",
+          "title": "Digital India AI & Cybersecurity Challenge Grant",
+          "category": "Technology & Innovation",
+          "fundingAgency": "Ministry of Electronics and Information Technology (MeitY)",
+          "totalBudget": 85000000,
+          "disbursedBudget": 28000000,
+          "minGrantAmount": 5000000,
+          "maxGrantAmount": 15000000,
+          "startDate": "2024-06-01",
+          "endDate": "2025-12-31",
+          "status": "ACTIVE",
+          "eligibilitySummary": "DPIIT recognized Startups with Indian resident majority shareholding and functional prototype.",
+          "criteria": [
+            {
+              "criterionCode": "MIN_OPERATING_YEARS",
+              "criterionName": "Min Operating Years",
+              "criterionType": "NUMERIC_MIN",
+              "expectedValue": "1",
+              "isMandatory": "Y",
+              "weightage": 40
+            },
+            {
+              "criterionCode": "ENTITY_TYPE_ALLOWED",
+              "criterionName": "Permissible Entities",
+              "criterionType": "IN_LIST",
+              "expectedValue": "Startup,MSME",
+              "isMandatory": "Y",
+              "weightage": 60
+            }
+          ]
+        },
+        "applicant": {
+          "userId": 7,
+          "username": "applicant_patel",
+          "fullName": "Chirag Patel",
+          "role": "ROLE_APPLICANT",
+          "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+          "email": "chirag@krishiai-tech.com",
+          "location": "Surat, Gujarat"
+        },
+        "projectTitle": "BhashaAI: Multilingual Speech-to-Speech Engine for Rural Health",
+        "projectSummary": "Speech recognition and translation for 10 Indic languages enabling ASHA health workers to capture patient notes.",
+        "requestedAmount": 12000000,
+        "approvedAmount": 11000000,
+        "projectDurationMonths": 18,
+        "stateOrRegion": "Karnataka",
+        "district": "Bengaluru Urban",
+        "organizationType": "Startup",
+        "organizationPan": "AAACK1234F",
+        "organizationGstin": "29AAACK1234F1Z1",
+        "annualTurnover": 14000000,
+        "yearsInOperation": 3,
+        "eligibilityStatus": "AUTO_ELIGIBLE",
+        "eligibilityRemarks": "Full eligibility confirmed.",
+        "status": "DISBURSED",
+        "submissionDate": "2024-06-15 09:20",
+        "assignedReviewer": {
+          "userId": 4,
+          "username": "reviewer_kapoor",
+          "fullName": "Dr. Alok Kapoor",
+          "role": "ROLE_REVIEWER",
+          "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+          "email": "a.kapoor@iitd.ac.in",
+          "location": "New Delhi"
+        },
+        "reviewScores": {
+          "feasibility": 25,
+          "innovation": 25,
+          "budget": 22,
+          "social": 24,
+          "total": 96,
+          "recommendation": "RECOMMEND_APPROVE"
+        }
+      },
+      "trancheNumber": 1,
+      "disbursementReference": "PFMS-TR-2024-00501",
+      "disbursementAmount": 6000000,
+      "paymentMethod": "PFMS_NEFT",
+      "bankName": "HDFC Bank Ltd",
+      "accountNumberMasked": "XXXXXX9876",
+      "ifscCode": "HDFC0000543",
+      "transactionReference": "PFMS20240710998811",
+      "scheduledDate": "2024-07-10",
+      "disbursementDate": "2024-07-10",
+      "status": "DISBURSED",
+      "remarks": "Tranche 1 for GPU computing cluster compute."
+    }
+  ],
+  "utilizationReports": [
+    {
+      "reportId": 1,
+      "application": {
+        "applicationId": 1,
+        "applicationNumber": "APP-2024-AGRI-00101",
+        "program": {
+          "programId": 1,
+          "programCode": "GMS-2024-AGRI-01",
+          "title": "PM Matsya Sampada Aquaculture Tech Grant",
+          "category": "Agriculture & Fisheries",
+          "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+          "totalBudget": 50000000,
+          "disbursedBudget": 14500000,
+          "minGrantAmount": 1000000,
+          "maxGrantAmount": 7500000,
+          "startDate": "2024-04-01",
+          "endDate": "2025-03-31",
+          "status": "ACTIVE",
+          "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+          "criteria": [
+            {
+              "criterionCode": "MIN_OPERATING_YEARS",
+              "criterionName": "Min Operating Years",
+              "criterionType": "NUMERIC_MIN",
+              "expectedValue": "2",
+              "isMandatory": "Y",
+              "weightage": 30
+            },
+            {
+              "criterionCode": "ENTITY_TYPE_ALLOWED",
+              "criterionName": "Entity Type Allowed",
+              "criterionType": "IN_LIST",
+              "expectedValue": "Startup,MSME,LLP",
+              "isMandatory": "Y",
+              "weightage": 35
+            },
+            {
+              "criterionCode": "GST_REGISTRATION",
+              "criterionName": "Valid GSTIN",
+              "criterionType": "BOOLEAN",
+              "expectedValue": "TRUE",
+              "isMandatory": "Y",
+              "weightage": 35
+            }
+          ]
+        },
+        "applicant": {
+          "userId": 7,
+          "username": "applicant_patel",
+          "fullName": "Chirag Patel",
+          "role": "ROLE_APPLICANT",
+          "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+          "email": "chirag@krishiai-tech.com",
+          "location": "Surat, Gujarat"
+        },
+        "projectTitle": "Smart IoT AquaAerator for Freshwater Prawns",
+        "projectSummary": "Deployment of solar-assisted automatic oxygenators with pH and turbidity monitoring in coastal aquaculture ponds.",
+        "requestedAmount": 4500000,
+        "approvedAmount": 4200000,
+        "projectDurationMonths": 18,
+        "stateOrRegion": "Gujarat",
+        "district": "Surat",
+        "organizationType": "Startup",
+        "organizationPan": "AAACK1234F",
+        "organizationGstin": "24AAACK1234F1Z8",
+        "annualTurnover": 12000000,
+        "yearsInOperation": 3,
+        "eligibilityStatus": "AUTO_ELIGIBLE",
+        "eligibilityRemarks": "All mandatory criteria satisfied: 3 yrs active, valid GST.",
+        "status": "APPROVED",
+        "submissionDate": "2024-04-12 10:30",
+        "assignedReviewer": {
+          "userId": 4,
+          "username": "reviewer_kapoor",
+          "fullName": "Dr. Alok Kapoor",
+          "role": "ROLE_REVIEWER",
+          "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+          "email": "a.kapoor@iitd.ac.in",
+          "location": "New Delhi"
+        },
+        "reviewScores": {
+          "feasibility": 23,
+          "innovation": 21,
+          "budget": 22,
+          "social": 24,
+          "total": 90,
+          "recommendation": "RECOMMEND_APPROVE"
+        }
+      },
+      "trancheNumber": 1,
+      "milestoneTitle": "Procurement and Pond Installation of 40 Solar Aerators",
+      "amountUtilized": 2450000,
+      "utilizationPercentage": 98,
+      "progressNarrative": "Procured 40 aerator assemblies with brushless motors, solar arrays, and IoT dissolved oxygen sensors.",
+      "verificationStatus": "VERIFIED_SATISFACTORY",
+      "verificationRemarks": "Site inspection completed by district fisheries officer."
+    },
+    {
+      "reportId": 2,
+      "application": {
+        "applicationId": 3,
+        "applicationNumber": "APP-2024-TECH-00301",
+        "program": {
+          "programId": 3,
+          "programCode": "GMS-2024-TECH-03",
+          "title": "Digital India AI & Cybersecurity Challenge Grant",
+          "category": "Technology & Innovation",
+          "fundingAgency": "Ministry of Electronics and Information Technology (MeitY)",
+          "totalBudget": 85000000,
+          "disbursedBudget": 28000000,
+          "minGrantAmount": 5000000,
+          "maxGrantAmount": 15000000,
+          "startDate": "2024-06-01",
+          "endDate": "2025-12-31",
+          "status": "ACTIVE",
+          "eligibilitySummary": "DPIIT recognized Startups with Indian resident majority shareholding and functional prototype.",
+          "criteria": [
+            {
+              "criterionCode": "MIN_OPERATING_YEARS",
+              "criterionName": "Min Operating Years",
+              "criterionType": "NUMERIC_MIN",
+              "expectedValue": "1",
+              "isMandatory": "Y",
+              "weightage": 40
+            },
+            {
+              "criterionCode": "ENTITY_TYPE_ALLOWED",
+              "criterionName": "Permissible Entities",
+              "criterionType": "IN_LIST",
+              "expectedValue": "Startup,MSME",
+              "isMandatory": "Y",
+              "weightage": 60
+            }
+          ]
+        },
+        "applicant": {
+          "userId": 7,
+          "username": "applicant_patel",
+          "fullName": "Chirag Patel",
+          "role": "ROLE_APPLICANT",
+          "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+          "email": "chirag@krishiai-tech.com",
+          "location": "Surat, Gujarat"
+        },
+        "projectTitle": "BhashaAI: Multilingual Speech-to-Speech Engine for Rural Health",
+        "projectSummary": "Speech recognition and translation for 10 Indic languages enabling ASHA health workers to capture patient notes.",
+        "requestedAmount": 12000000,
+        "approvedAmount": 11000000,
+        "projectDurationMonths": 18,
+        "stateOrRegion": "Karnataka",
+        "district": "Bengaluru Urban",
+        "organizationType": "Startup",
+        "organizationPan": "AAACK1234F",
+        "organizationGstin": "29AAACK1234F1Z1",
+        "annualTurnover": 14000000,
+        "yearsInOperation": 3,
+        "eligibilityStatus": "AUTO_ELIGIBLE",
+        "eligibilityRemarks": "Full eligibility confirmed.",
+        "status": "DISBURSED",
+        "submissionDate": "2024-06-15 09:20",
+        "assignedReviewer": {
+          "userId": 4,
+          "username": "reviewer_kapoor",
+          "fullName": "Dr. Alok Kapoor",
+          "role": "ROLE_REVIEWER",
+          "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+          "email": "a.kapoor@iitd.ac.in",
+          "location": "New Delhi"
+        },
+        "reviewScores": {
+          "feasibility": 25,
+          "innovation": 25,
+          "budget": 22,
+          "social": 24,
+          "total": 96,
+          "recommendation": "RECOMMEND_APPROVE"
+        }
+      },
+      "trancheNumber": 1,
+      "milestoneTitle": "Indic Acoustic Dataset Collection (10 Languages)",
+      "amountUtilized": 5850000,
+      "utilizationPercentage": 97.5,
+      "progressNarrative": "Recorded 4,200 hours of conversational health dialogues in Hindi, Tamil, Telugu, and Gujarati.",
+      "verificationStatus": "VERIFIED_SATISFACTORY",
+      "verificationRemarks": "Dataset audit verified."
+    }
+  ],
+  "auditLogs": [
+    {
+      "timestamp": "2026-11-20 06:03",
+      "user": "Applicant (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-88571",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2024-04-12 10:30",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2024-AGRI-00101",
+      "ip": "49.36.12.98",
+      "details": "Submitted proposal with 4 uploaded verified documents."
+    },
+    {
+      "timestamp": "2024-04-15 11:00",
+      "user": "Sunita Sharma (Officer)",
+      "action": "ASSIGN_REVIEWER",
+      "entity": "APP-2024-AGRI-00101",
+      "ip": "10.20.1.45",
+      "details": "Assigned proposal to Dr. Alok Kapoor (IIT Delhi)."
+    },
+    {
+      "timestamp": "2024-04-28 11:30",
+      "user": "Dr. Alok Kapoor (Reviewer)",
+      "action": "SUBMIT_REVIEW",
+      "entity": "APP-2024-AGRI-00101",
+      "ip": "14.139.45.10",
+      "details": "Score: 90/100 | Recommendation: RECOMMEND_APPROVE."
+    },
+    {
+      "timestamp": "2024-05-02 15:00",
+      "user": "Sunita Sharma (Officer)",
+      "action": "APPROVE",
+      "entity": "APP-2024-AGRI-00101",
+      "ip": "10.20.1.45",
+      "details": "Sanction approved for INR 42,00,000 in two tranches."
+    },
+    {
+      "timestamp": "2024-05-05 12:45",
+      "user": "Sunita Sharma (Officer)",
+      "action": "DISBURSE",
+      "entity": "PFMS-TR-2024-00101",
+      "ip": "10.20.1.45",
+      "details": "Released Tranche 1 payment of INR 25,00,000 via PFMS NEFT."
+    }
+  ],
+  "stats": {
+    "totalPrograms": 4,
+    "activePrograms": 4,
+    "totalAllocatedBudget": 280000000,
+    "totalDisbursedBudget": 90500000,
+    "totalApplications": 6,
+    "applicationsApproved": 2,
+    "applicationsUnderReview": 1,
+    "applicationsDisbursed": 2,
+    "applicationsRejected": 0,
+    "budgetUtilizationRate": 32.32
+  }
+}
