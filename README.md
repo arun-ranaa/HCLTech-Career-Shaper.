@@ -122,7 +122,7 @@ To run against Oracle 21c XE:
    spring.datasource.url=jdbc:oracle:thin:@localhost:1521/XEPDB1
    spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
    spring.datasource.username=GRANTS_ADMIN
-   spring.datasource.password=GrantsAdmin#2024
+   spring.datasource.password=<YOUR_ORACLE_PASSWORD>
    spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
    ```
 

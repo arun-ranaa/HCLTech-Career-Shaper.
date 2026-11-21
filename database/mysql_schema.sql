@@ -60,6 +60,10 @@ INSERT IGNORE INTO programs (program_id, program_code, title, category, funding_
 -- Insert Applications (Including Real-time Test Records)
 -- ----------------------------------------------------------------------------
 INSERT IGNORE INTO applications (application_number, project_title, applicant_name, applicant_email, organization_name, organization_type, requested_amount, approved_amount, project_duration_months, eligibility_status, status, submission_date) VALUES
+('APP-2025-92907', 'test3', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4000000.00, 4000000.00, 18, 'AUTO_ELIGIBLE', 'APPROVED', '2026-11-20'),
+('APP-2025-88846', 'tes2', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4000000.00, 4000000.00, 18, 'AUTO_ELIGIBLE', 'APPROVED', '2026-11-20'),
+('APP-2025-40107', 'test1', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4000.00, 4000.00, 12, 'AUTO_ELIGIBLE', 'APPROVED', '2026-11-20'),
+('APP-2025-93835', 'solar panel', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4000000.00, 4000000.00, 18, 'AUTO_ELIGIBLE', 'APPROVED', '2026-11-20'),
 ('APP-2025-73608', 'land', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4000000.00, 4000000.00, 12, 'AUTO_ELIGIBLE', 'APPROVED', '2026-11-20'),
 ('APP-2025-67301', 'Smart IoT AquaAerator System', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4800000.00, NULL, 18, 'AUTO_ELIGIBLE', 'SUBMITTED', '2026-11-20'),
 ('APP-2024-AGRI-00101', 'Smart IoT AquaAerator for Freshwater Prawns', 'Chirag Patel', 'chirag@krishiai-tech.com', 'KrishiAI Technologies Pvt Ltd', 'Startup', 4500000.00, 4200000.00, 18, 'AUTO_ELIGIBLE', 'APPROVED', '2024-04-12'),

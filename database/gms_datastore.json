@@ -173,6 +173,446 @@
   ],
   "applications": [
     {
+      "applicationId": 12,
+      "applicationNumber": "APP-2025-92907",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "test3",
+      "projectSummary": "test2",
+      "requestedAmount": 4000000,
+      "approvedAmount": 4000000,
+      "projectDurationMonths": 18,
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "stateOrRegion": " Gujarat",
+      "district": "Surat",
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "All mandatory program criteria and grant ceilings validated successfully.",
+      "status": "APPROVED",
+      "submissionDate": "2026-11-20",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 23,
+        "innovation": 22,
+        "budget": 17,
+        "social": 24,
+        "total": 86,
+        "recommendation": "RECOMMEND_APPROVE",
+        "comments": "High technical merit with well conceived field validation plan. Recommended for sanction.",
+        "reviewer": "Dr. Alok Kapoor",
+        "reviewerOrg": "IIT Delhi (Independent Peer Review Committee)",
+        "reviewDate": "2026-11-20 09:43"
+      }
+    },
+    {
+      "applicationId": 11,
+      "applicationNumber": "APP-2025-88846",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "tes2",
+      "projectSummary": "do",
+      "requestedAmount": 4000000,
+      "approvedAmount": 4000000,
+      "projectDurationMonths": 18,
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "stateOrRegion": "State",
+      "district": "uttar",
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "All mandatory program criteria and grant ceilings validated successfully.",
+      "status": "APPROVED",
+      "submissionDate": "2026-11-20",
+      "assignedReviewer": null,
+      "reviewScores": null
+    },
+    {
+      "applicationId": 10,
+      "applicationNumber": "APP-2025-40107",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "test1",
+      "projectSummary": "done",
+      "requestedAmount": 4000,
+      "approvedAmount": 4000,
+      "projectDurationMonths": 18,
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "stateOrRegion": " Gujarat",
+      "district": "Surat",
+      "eligibilityStatus": "AUTO_INELIGIBLE",
+      "eligibilityRemarks": "Requested amount (INR 4,000) outside allowed ceiling (INR 10,00,000 - INR 75,00,000).",
+      "status": "APPROVED",
+      "submissionDate": "2026-11-20",
+      "assignedReviewer": null,
+      "reviewScores": null
+    },
+    {
+      "applicationId": 9,
+      "applicationNumber": "APP-2025-93835",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "solar panel",
+      "projectSummary": "we need it",
+      "requestedAmount": 4000000,
+      "approvedAmount": 4000000,
+      "projectDurationMonths": 18,
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "stateOrRegion": "State",
+      "district": "uttar ",
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "All mandatory program criteria and grant ceilings validated successfully.",
+      "status": "APPROVED",
+      "submissionDate": "2026-11-20",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 23,
+        "innovation": 22,
+        "budget": 21,
+        "social": 24,
+        "total": 90,
+        "recommendation": "RECOMMEND_APPROVE",
+        "comments": "High technical merit with well conceived field validation plan. Recommended for sanction.",
+        "reviewer": "Dr. Alok Kapoor",
+        "reviewerOrg": "IIT Delhi (Independent Peer Review Committee)",
+        "reviewDate": "2026-11-20 07:11"
+      }
+    },
+    {
+      "applicationId": 8,
+      "applicationNumber": "APP-2025-73608",
+      "program": {
+        "programId": 1,
+        "programCode": "GMS-2024-AGRI-01",
+        "title": "PM Matsya Sampada Aquaculture Tech Grant",
+        "category": "Agriculture & Fisheries",
+        "fundingAgency": "Ministry of Fisheries, Animal Husbandry & Dairying",
+        "totalBudget": 50000000,
+        "disbursedBudget": 14500000,
+        "minGrantAmount": 1000000,
+        "maxGrantAmount": 7500000,
+        "startDate": "2024-04-01",
+        "endDate": "2025-03-31",
+        "status": "ACTIVE",
+        "eligibilitySummary": "MSMEs or Startups registered in India with min 2 years operational record in fisheries.",
+        "criteria": [
+          {
+            "criterionCode": "MIN_OPERATING_YEARS",
+            "criterionName": "Min Operating Years",
+            "criterionType": "NUMERIC_MIN",
+            "expectedValue": "2",
+            "isMandatory": "Y",
+            "weightage": 30
+          },
+          {
+            "criterionCode": "ENTITY_TYPE_ALLOWED",
+            "criterionName": "Entity Type Allowed",
+            "criterionType": "IN_LIST",
+            "expectedValue": "Startup,MSME,LLP",
+            "isMandatory": "Y",
+            "weightage": 35
+          },
+          {
+            "criterionCode": "GST_REGISTRATION",
+            "criterionName": "Valid GSTIN",
+            "criterionType": "BOOLEAN",
+            "expectedValue": "TRUE",
+            "isMandatory": "Y",
+            "weightage": 35
+          }
+        ]
+      },
+      "applicant": {
+        "userId": 7,
+        "username": "applicant_patel",
+        "fullName": "Chirag Patel",
+        "role": "ROLE_APPLICANT",
+        "organizationName": "KrishiAI Technologies Pvt Ltd (DPIIT Startup)",
+        "email": "chirag@krishiai-tech.com",
+        "location": "Surat, Gujarat"
+      },
+      "projectTitle": "land",
+      "projectSummary": "buy",
+      "requestedAmount": 4000000,
+      "approvedAmount": 4000000,
+      "projectDurationMonths": 18,
+      "organizationType": "Startup",
+      "organizationPan": "AAACK1234F",
+      "organizationGstin": "24AAACK1234F1Z8",
+      "annualTurnover": 12000000,
+      "yearsInOperation": 3,
+      "stateOrRegion": " Gujarat",
+      "district": "Surat",
+      "eligibilityStatus": "AUTO_ELIGIBLE",
+      "eligibilityRemarks": "All mandatory program criteria and grant ceilings validated successfully.",
+      "status": "APPROVED",
+      "submissionDate": "2026-11-20",
+      "assignedReviewer": {
+        "userId": 4,
+        "username": "reviewer_kapoor",
+        "fullName": "Dr. Alok Kapoor",
+        "role": "ROLE_REVIEWER",
+        "organizationName": "IIT Delhi (Independent Peer Review Committee)",
+        "email": "a.kapoor@iitd.ac.in",
+        "location": "New Delhi"
+      },
+      "reviewScores": {
+        "feasibility": 23,
+        "innovation": 22,
+        "budget": 21,
+        "social": 24,
+        "total": 90,
+        "recommendation": "RECOMMEND_APPROVE",
+        "comments": "High technical merit with well conceived field validation plan. Recommended for sanction.",
+        "reviewer": "Dr. Alok Kapoor",
+        "reviewerOrg": "IIT Delhi (Independent Peer Review Committee)",
+        "reviewDate": "2026-11-20 06:46"
+      }
+    },
+    {
+      "projectTitle": "Smart IoT AquaAerator System",
+      "requestedAmount": 4800000,
+      "organizationType": "Startup",
+      "applicant": {
+        "fullName": "Chirag Patel",
+        "email": "chirag@krishiai.com",
+        "organizationName": "KrishiAI Tech Pvt Ltd"
+      },
+      "program": {
+        "title": "PM Matsya Sampada Aquaculture Grant"
+      },
+      "applicationId": 7,
+      "applicationNumber": "APP-2025-67301",
+      "submissionDate": "2026-11-20",
+      "status": "SUBMITTED"
+    },
+    {
+      "applicationId": 6,
+      "applicationNumber": "APP-2025-14589",
+      "submissionDate": "2026-11-20",
+      "status": "SUBMITTED"
+    },
+    {
       "applicationId": 5,
       "applicationNumber": "APP-2025-88571",
       "submissionDate": "2026-11-20",
@@ -986,6 +1426,126 @@
   ],
   "auditLogs": [
     {
+      "timestamp": "2026-11-20 09:44",
+      "user": "Sunita Sharma (Officer)",
+      "action": "APPROVE",
+      "entity": "APP-2025-88846",
+      "ip": "10.20.1.45",
+      "details": "Sanction decision: APPROVE. Approved Amount: INR 4000000. Notes: Sanction approved based on unanimous reviewer panel recommendation. Disbursement linked to milestone utilization certificates."
+    },
+    {
+      "timestamp": "2026-11-20 09:43",
+      "user": "Dr. Alok Kapoor (Evaluation Committee)",
+      "action": "REVIEW_APPROVED",
+      "entity": "APP-2025-92907",
+      "ip": "14.139.45.10",
+      "details": "Evaluation Scorecard submitted (Score: 86/100, Recommendation: RECOMMEND_APPROVE). Proposal evaluated and marked APPROVED for grant sanction. Remarks: \"High technical merit with well conceived field validation plan. Recommended for sanction.\""
+    },
+    {
+      "timestamp": "2026-11-20 09:43",
+      "user": "Sunita Sharma (Officer)",
+      "action": "ASSIGN_REVIEWER",
+      "entity": "APP-2025-92907",
+      "ip": "10.20.1.45",
+      "details": "Assigned technical appraisal to Dr. Alok Kapoor."
+    },
+    {
+      "timestamp": "2026-11-20 09:39",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-92907",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 09:28",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-88846",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 07:26",
+      "user": "Sunita Sharma (Officer)",
+      "action": "APPROVE",
+      "entity": "APP-2025-40107",
+      "ip": "10.20.1.45",
+      "details": "Sanction decision: APPROVE. Approved Amount: INR 4000. Notes: Sanction approved based on unanimous reviewer panel recommendation. Disbursement linked to milestone utilization certificates."
+    },
+    {
+      "timestamp": "2026-11-20 07:24",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-40107",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_INELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 07:11",
+      "user": "Dr. Alok Kapoor (Evaluation Committee)",
+      "action": "REVIEW_APPROVED",
+      "entity": "APP-2025-93835",
+      "ip": "14.139.45.10",
+      "details": "Evaluation Scorecard submitted (Score: 90/100, Recommendation: RECOMMEND_APPROVE). Proposal evaluated and marked APPROVED for grant sanction. Remarks: \"High technical merit with well conceived field validation plan. Recommended for sanction.\""
+    },
+    {
+      "timestamp": "2026-11-20 07:11",
+      "user": "Sunita Sharma (Officer)",
+      "action": "ASSIGN_REVIEWER",
+      "entity": "APP-2025-93835",
+      "ip": "10.20.1.45",
+      "details": "Assigned technical appraisal to Dr. Alok Kapoor."
+    },
+    {
+      "timestamp": "2026-11-20 07:06",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-93835",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 06:46",
+      "user": "Dr. Alok Kapoor (Evaluation Committee)",
+      "action": "REVIEW_APPROVED",
+      "entity": "APP-2025-73608",
+      "ip": "14.139.45.10",
+      "details": "Evaluation Scorecard submitted (Score: 90/100, Recommendation: RECOMMEND_APPROVE). Proposal evaluated and marked APPROVED for grant sanction. Remarks: \"High technical merit with well conceived field validation plan. Recommended for sanction.\""
+    },
+    {
+      "timestamp": "2026-11-20 06:45",
+      "user": "Sunita Sharma (Officer)",
+      "action": "ASSIGN_REVIEWER",
+      "entity": "APP-2025-73608",
+      "ip": "10.20.1.45",
+      "details": "Assigned technical appraisal to Dr. Alok Kapoor."
+    },
+    {
+      "timestamp": "2026-11-20 06:28",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-73608",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 06:12",
+      "user": "Chirag Patel (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-67301",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
+      "timestamp": "2026-11-20 06:11",
+      "user": "Applicant (Applicant)",
+      "action": "SUBMIT",
+      "entity": "APP-2025-14589",
+      "ip": "127.0.0.1",
+      "details": "Application submitted. Eligibility Verdict: AUTO_ELIGIBLE."
+    },
+    {
       "timestamp": "2026-11-20 06:03",
       "user": "Applicant (Applicant)",
       "action": "SUBMIT",
@@ -1039,9 +1599,9 @@
     "activePrograms": 4,
     "totalAllocatedBudget": 280000000,
     "totalDisbursedBudget": 90500000,
-    "totalApplications": 6,
-    "applicationsApproved": 2,
-    "applicationsUnderReview": 1,
+    "totalApplications": 13,
+    "applicationsApproved": 5,
+    "applicationsUnderReview": 0,
     "applicationsDisbursed": 2,
     "applicationsRejected": 0,
     "budgetUtilizationRate": 32.32

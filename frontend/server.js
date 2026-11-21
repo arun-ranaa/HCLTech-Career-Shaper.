@@ -17,6 +17,24 @@ const PUBLIC_DIR = path.join(__dirname, 'src');
 const DATA_DIR = path.join(__dirname, '..', 'database');
 const DATA_FILE = path.join(DATA_DIR, 'gms_datastore.json');
 
+// Load local environment variables from .env if present (excluded from Git)
+try {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx !== -1) {
+        const key = trimmed.substring(0, idx).trim();
+        const val = trimmed.substring(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  }
+} catch (e) {}
+
 // MIME Type Map
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -133,6 +151,43 @@ EXIT;
 }
 
 // ---------------------------------------------------------------------------
+// MYSQL WORKBENCH LIVE BRIDGE
+// ---------------------------------------------------------------------------
+const MYSQL_BIN = process.env.MYSQL_BIN || 'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe';
+const MYSQL_PASS = process.env.MYSQL_PASSWORD || '';
+
+function syncToMySQL(appData) {
+  try {
+    if (!appData.projectTitle && !appData.requestedAmount) return;
+    const appNum = (appData.applicationNumber || ('APP-' + Date.now())).replace(/'/g, "''");
+    const title = (appData.projectTitle || 'Grant Project').replace(/'/g, "''");
+    const applicantName = (appData.applicant?.fullName || 'Applicant').replace(/'/g, "''");
+    const email = (appData.applicant?.email || 'applicant@grants.gov.in').replace(/'/g, "''");
+    const orgName = (appData.applicant?.organizationName || appData.organizationType || 'Public Participant').replace(/'/g, "''");
+    const orgType = (appData.organizationType || 'Startup').replace(/'/g, "''");
+    const requestedAmt = Number(appData.requestedAmount || 100000);
+    const approvedAmt = appData.approvedAmount ? Number(appData.approvedAmount) : 'NULL';
+    const duration = Number(appData.projectDurationMonths || 12);
+    const eligStatus = (appData.eligibilityStatus || 'AUTO_ELIGIBLE').replace(/'/g, "''");
+    const status = (appData.status || 'SUBMITTED').replace(/'/g, "''");
+    const subDate = (appData.submissionDate || new Date().toISOString().substring(0, 10)).replace(/'/g, "''");
+
+    const sql = `USE grants_management; INSERT INTO applications (application_number, project_title, applicant_name, applicant_email, organization_name, organization_type, requested_amount, approved_amount, project_duration_months, eligibility_status, status, submission_date) VALUES ('${appNum}', '${title}', '${applicantName}', '${email}', '${orgName}', '${orgType}', ${requestedAmt}, ${approvedAmt}, ${duration}, '${eligStatus}', '${status}', '${subDate}') ON DUPLICATE KEY UPDATE status = VALUES(status), approved_amount = VALUES(approved_amount), eligibility_status = VALUES(eligibility_status);`;
+
+    const passArg = MYSQL_PASS ? `-p${MYSQL_PASS}` : '';
+    exec(`"${MYSQL_BIN}" -u root ${passArg} -e "${sql}"`, (err, stdout) => {
+      if (err) {
+        console.warn('[MySQL Sync] Notice:', err.message);
+      } else {
+        console.log(`[MySQL Sync] Live synced to MySQL Workbench (grants_management.applications): ${appNum}`);
+      }
+    });
+  } catch (e) {
+    console.warn('[MySQL Sync] Bridge error:', e.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // HTTP REQUEST PARSING HELPER
 // ---------------------------------------------------------------------------
 function getRequestBody(req) {
@@ -196,6 +251,10 @@ const server = http.createServer(async (req, res) => {
       const payload = await getRequestBody(req);
       if (payload.applications && Array.isArray(payload.applications)) {
         dataStore.applications = payload.applications;
+        // Keep MySQL Workbench synchronized in real-time
+        if (payload.applications.length > 0) {
+          syncToMySQL(payload.applications[0]);
+        }
       }
       if (payload.auditLogs && Array.isArray(payload.auditLogs)) {
         dataStore.auditLogs = payload.auditLogs;
@@ -264,6 +323,9 @@ const server = http.createServer(async (req, res) => {
       
       // Live sync to Oracle Database 11g/21c XE
       syncToOracle(appData);
+
+      // Live sync to MySQL Server 8.0 (MySQL Workbench)
+      syncToMySQL(appData);
 
       return sendJson(res, 201, appData);
     }
